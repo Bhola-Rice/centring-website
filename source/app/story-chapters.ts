@@ -1,0 +1,7 @@
+export const chapters = [
+  { label: "Find your fit", title: "A world of possibilities.\nA place to start.", text: "Bring your mission into focus. Explore funding opportunities, understand what fits, and keep the possibilities that deserve a closer look.", note: "01 — FIND", heading: "Your next possibility", type: "Opportunity shortlist", rows: ["Community-led projects", "Arts & belonging", "Youth & education"] },
+  { label: "Shape your idea", title: "Big ideas start\nwith a little clarity.", text: "Turn what you want to make possible into a clear program brief. Work through your purpose, people, budget, and timing, one thoughtful question at a time.", note: "02 — BUILD", heading: "Make room for creativity", type: "Your program brief", rows: ["Who will this serve?", "What will you make possible?", "What will you need?"] },
+  { label: "Take the next step", title: "Your mission.\nStill your voice.", text: "Move from a good idea to a useful first draft. Prepare an application or introduction, bring in your team, and decide together when it’s ready.", note: "03 — PREPARE", heading: "A thoughtful first step", type: "Ready for your review", rows: ["Program overview", "Budget & request", "Your team’s final review"] },
+  { label: "Review together", title: "Centring prepares.\nYour people decide.", text: "Check the details, bring in your team, and make the final call. See what’s been reviewed and what still needs your attention before anything leaves your hands." },
+];
+
