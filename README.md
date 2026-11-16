@@ -24,6 +24,10 @@ Read `START-HERE.txt` on the staging branch for editing and publishing instructi
 - `START-HERE.txt`: run, edit and publish guide
 - Releases: downloadable complete handoff ZIP
 
-This is a private team repository. The owner can invite teammates through **Settings → Collaborators**. Repository access and Sites publishing access are separate.
+This repository is public. Anyone can read and download its source. The owner can invite contributors through **Settings → Collaborators**. Publishing access and runtime secrets are separate.
 
 The `staging` branch is a review branch, not a separate hosted staging website. GitHub pushes and PR merges do not automatically publish to the live Site. Publishing is a separate authorized Sites step documented in the guide.
+
+## Dashboard
+
+The nonprofit dashboard is maintained separately in [`dashboard/`](dashboard/). See its [run guide](dashboard/README.md) and [deployment/data guide](dashboard/docs/DEPLOYMENT-AND-DATA.md). Dashboard changes are tested and built by GitHub Actions. The marketing handoff remains on `staging`.
