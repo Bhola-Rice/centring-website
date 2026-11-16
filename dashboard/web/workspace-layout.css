@@ -49,3 +49,49 @@ body.chat-open .studio-breadcrumb{overflow-wrap:anywhere}
 }
 
 .cloud-status{font:inherit;font-size:12px;color:#42533b;background:rgba(255,255,255,.7);border:1px solid #dce4d7;border-radius:24px;padding:8px 12px;max-width:190px;white-space:normal;cursor:pointer}.cloud-status:hover{background:#fff}.cloud-actions{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}.cloud-summary{font-weight:600}#detail .cloud-actions+.cloud-summary{margin-top:24px}@media(max-width:700px){.cloud-status{max-width:110px;font-size:11px;padding:6px}.topbar .org{max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+
+/* Adapt to the editing space, including the width reserved for Beedy. */
+.shell main{container:workspace / inline-size;min-width:0}
+.writing-surface{container:editor / inline-size}
+.studio-breadcrumb{flex-wrap:wrap;align-items:baseline}
+.studio-breadcrumb>span:last-child{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;min-width:0}
+.application-answer-heading>div,.application-answer-meta>*,.studio-source-list>div>div,.row-main{min-width:0;overflow-wrap:anywhere}
+.shell main input,.shell main textarea,.shell main select{min-width:0;max-width:100%;box-sizing:border-box}
+.week{grid-template-columns:repeat(7,minmax(0,1fr))}
+.weekday,.weeknote{min-width:0;overflow-wrap:anywhere}
+@container workspace (max-width:760px){
+ .studio-launch-art{display:none}
+ .studio-launch{padding:24px}
+ .studio-launch-actions,.document-toolbar,.page-heading,.sectionhead{flex-wrap:wrap}
+ .insights-grid{grid-template-columns:minmax(0,1fr)}
+ .funding-bars{grid-template-columns:minmax(0,1fr)}
+ .document-row{grid-template-columns:minmax(0,1fr) 38px}
+ .document-row .document-open{grid-column:1;grid-row:1}
+ .document-row .document-status,.document-row time{grid-column:1}
+ .document-row .iconbtn{grid-column:2;grid-row:1}
+ .document-table-head{display:none}
+}
+@container editor (max-width:800px){
+ .inline-review-layout{grid-template-columns:minmax(0,1fr)}
+ .suggestion-rail{position:static;max-height:none}
+ .review-toolbar{position:static;flex-wrap:wrap}
+ .review-paper{margin:12px;padding:24px 20px}
+ .application-summary,.application-answer-heading,.application-answer-footer{flex-wrap:wrap}
+ .application-answer-heading>div{flex-basis:100%}
+ .application-answer-status{white-space:normal}
+ .application-answer-meta{flex-wrap:wrap;gap:8px}
+ .application-summary{padding:24px}
+ .application-answers{padding:0 24px 24px}
+ .application-form-note,.application-fit{margin:20px 24px}
+ .memory-project,.memory-comparison{grid-template-columns:minmax(0,1fr)}
+}
+@container workspace (max-width:420px){
+ .studio-heading-actions .btn,.page-heading .btn{white-space:normal}
+ .studio-launch,.document-library{padding:18px}
+ .ring-layout{flex-wrap:wrap;justify-content:center}
+ .ring-legend{flex-basis:100%}
+ .simple-row{flex-wrap:wrap}
+}
+
+.memory-project-title{display:block;white-space:normal;overflow-wrap:anywhere;font-size:13px;font-weight:400;line-height:1.5;margin-top:8px}.memory-project textarea{width:100%;resize:vertical;line-height:1.5}
+@container workspace (max-width:760px){.document-row .document-status{display:block}.document-toolbar{gap:12px}.document-search{max-width:none;width:100%}}
