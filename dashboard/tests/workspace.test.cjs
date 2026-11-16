@@ -39,10 +39,10 @@ test('saved federal grants add dated calendar entries without changing demo appl
 
 test('notifications include overdue and next-seven-day work, excluding completed and later items',()=>{
  const api=workspace();api.state.tasks=[{id:'past',title:'Overdue',date:'2026-11-08',type:'task',done:false},{id:'next',title:'Next week',date:'2026-11-17',type:'task',done:false},{id:'later',title:'Later',date:'2026-11-18',type:'task',done:false},{id:'done',title:'Done',date:'2026-11-10',type:'task',done:true}];
- const items=api.notificationItems(new Date(2026,10,10));assert.ok(items.some(e=>e.id==='past'));assert.ok(items.some(e=>e.id==='next'));assert.ok(!items.some(e=>e.id==='later'||e.id==='done'));
+ const items=api.notificationItems(new Date('2026-11-10T12:00:00-08:00'));assert.ok(items.some(e=>e.id==='past'));assert.ok(items.some(e=>e.id==='next'));assert.ok(!items.some(e=>e.id==='later'||e.id==='done'));
 });
 test('addressed notifications persist, restore, and never complete the underlying task',()=>{
- const api=workspace(),today=new Date(2026,10,10),entry=api.notificationItems(today).find(e=>e.type==='task');
+ const api=workspace(),today=new Date('2026-11-10T12:00:00-08:00'),entry=api.notificationItems(today).find(e=>e.type==='task');
  const before=api.notificationItems(today).filter(e=>!e.addressed).length;
  assert.equal(api.setNotificationAddressed(entry.key,true,today),true);
  assert.equal(api.notificationItems(today).filter(e=>!e.addressed).length,before-1);
@@ -51,7 +51,7 @@ test('addressed notifications persist, restore, and never complete the underlyin
  assert.equal(reload.setNotificationAddressed(entry.key,false,today),true);assert.equal(reload.notificationItems(today).filter(e=>!e.addressed).length,before);
 });
 test('reading reminders does not address them; changed deadlines produce fresh reminders',()=>{
- const api=workspace(),today=new Date(2026,10,10),entry=api.notificationItems(today).find(e=>e.type==='task');
+ const api=workspace(),today=new Date('2026-11-10T12:00:00-08:00'),entry=api.notificationItems(today).find(e=>e.type==='task');
  assert.equal(api.getState().addressedNotifications,undefined);
  api.setNotificationAddressed(entry.key,true,today);api.getState().tasks.find(e=>e.id===entry.id).date='2026-11-16';
  assert.equal(api.notificationItems(today).find(e=>e.id===entry.id).addressed,false);
@@ -59,7 +59,7 @@ test('reading reminders does not address them; changed deadlines produce fresh r
  assert.equal(api.setNotificationAddressed('unknown',true,today),false);
 });
 test('same-day follow-up and decision remain distinct notifications',()=>{
- const api=workspace(),a=api.state.applications.heritage,today=new Date(2026,10,10);a.followup='2026-11-12';a.decisionDate='2026-11-12';
+ const api=workspace(),a=api.state.applications.heritage,today=new Date('2026-11-10T12:00:00-08:00');a.followup='2026-11-12';a.decisionDate='2026-11-12';
  const rows=api.notificationItems(today).filter(e=>e.id==='heritage'&&e.type==='decision');assert.equal(rows.length,2);assert.notEqual(rows[0].key,rows[1].key);
  api.setNotificationAddressed(rows[0].key,true,today);assert.equal(api.notificationItems(today).find(e=>e.key===rows[1].key).addressed,false);
 });
