@@ -47,3 +47,5 @@ body.chat-open .studio-breadcrumb{overflow-wrap:anywhere}
  body.chat-open .chat-suggestions{display:none}
  body.chat-open .chat-compose textarea{min-height:40px;padding:8px}
 }
+
+.cloud-status{font:inherit;font-size:12px;color:#42533b;background:rgba(255,255,255,.7);border:1px solid #dce4d7;border-radius:24px;padding:8px 12px;max-width:190px;white-space:normal;cursor:pointer}.cloud-status:hover{background:#fff}.cloud-actions{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}.cloud-summary{font-weight:600}#detail .cloud-actions+.cloud-summary{margin-top:24px}@media(max-width:700px){.cloud-status{max-width:110px;font-size:11px;padding:6px}.topbar .org{max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}

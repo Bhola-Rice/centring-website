@@ -1,33 +1,31 @@
-# Centring website — team review
+# Centring application and website
 
-[Live website](https://centring-kiwi.loftyninja.chatgpt.site/) · [Download complete handoff ZIP](https://github.com/Bhola-Rice/centring-website/releases/download/team-handoff-v1/Centring-Team-Handoff.zip) · [Browse staging files](https://github.com/Bhola-Rice/centring-website/tree/staging)
+**[Open the Centring application](https://centring-dashboard-demo.loftyninja.chatgpt.site/)**
 
-The complete website, original video, artwork, fonts, reference documents and setup guide are staged on the `staging` branch for team review. Open the repository's Pull requests tab to review the handoff before merging.
+This repository contains the complete dashboard application in [`dashboard/`](dashboard/): browser UI, Beedy agent and voice, document processing, cloud storage, API handlers, assets, tests, database migrations, and build scripts.
 
-## Start working
+GitHub is where the team reads and changes code. Use the application link above to sign in and work with grants and documents.
+
+## Run the application locally
 
 ```sh
-git clone --branch staging https://github.com/Bhola-Rice/centring-website.git
-cd centring-website/source
-npm run install:ci
+git clone https://github.com/Bhola-Rice/centring-website.git
+cd centring-website/dashboard
+npm ci
+npm test
+npm run build
 npm run dev
 ```
 
-Requires Node.js 22.13 or newer. Use the localhost URL printed in your terminal.
-Read `START-HERE.txt` on the staging branch for editing and publishing instructions.
+Use Node.js 24+. Open http://127.0.0.1:7788. Local development has its own data store and does not automatically access the live team's records.
+
+Read the [application guide](dashboard/README.md) and [deployment and data guide](dashboard/docs/DEPLOYMENT-AND-DATA.md) for the code map, team access, migrating browser-only work, backups, and publishing.
 
 ## What lives where
 
-- `source/`: application code, build configuration and deployed assets
-- `assets/`: original video, preserved earlier MP4, Beedy artwork and original font package
-- `docs/`: supplied Centring reference PDFs
-- `START-HERE.txt`: run, edit and publish guide
-- Releases: downloadable complete handoff ZIP
+- **Application:** [live workspace](https://centring-dashboard-demo.loftyninja.chatgpt.site/) and [`dashboard/` source](dashboard/).
+- **Shared documents and records:** private hosting storage behind the workspace sign-in, not this repository.
+- **Marketing website:** [live site](https://centring-kiwi.loftyninja.chatgpt.site/), [handoff on staging](https://github.com/Bhola-Rice/centring-website/tree/staging), and [original handoff ZIP](https://github.com/Bhola-Rice/centring-website/releases/download/team-handoff-v1/Centring-Team-Handoff.zip).
+- **Deployments:** GitHub Actions tests/builds dashboard changes. Publishing to the existing Sites application is a separate step documented in the deployment guide; merging does not automatically publish.
 
-This repository is public. Anyone can read and download its source. The owner can invite contributors through **Settings → Collaborators**. Publishing access and runtime secrets are separate.
-
-The `staging` branch is a review branch, not a separate hosted staging website. GitHub pushes and PR merges do not automatically publish to the live Site. Publishing is a separate authorized Sites step documented in the guide.
-
-## Dashboard
-
-The nonprofit dashboard is maintained separately in [`dashboard/`](dashboard/). See its [run guide](dashboard/README.md) and [deployment/data guide](dashboard/docs/DEPLOYMENT-AND-DATA.md). Dashboard changes are tested and built by GitHub Actions. The marketing handoff remains on `staging`.
+This repository is public. It intentionally excludes API keys, authentication secrets, customer uploads and runtime databases. Repository contributors can clone and build the application; production publishing permissions are managed separately. Invite contributors through repository Settings → Collaborators.
