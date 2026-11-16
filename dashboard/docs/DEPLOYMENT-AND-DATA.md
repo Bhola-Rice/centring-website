@@ -1,54 +1,61 @@
-# Source, deployments, and saved data
+# Application access, deployment, and data
 
-## Current source and deployment
+## Which link should I use?
 
-The dashboard is separate from the marketing site. Its Sites project is
-`appgprj_6af2758b377c81919295eacece5cab1c` and it is published at
-https://centring-dashboard-demo.loftyninja.chatgpt.site/.
+- **Use the application:** https://centring-dashboard-demo.loftyninja.chatgpt.site/
+- **Read or clone all application source:** https://github.com/Bhola-Rice/centring-website/tree/main/dashboard
+- **Marketing site:** https://centring-kiwi.loftyninja.chatgpt.site/
 
-The working checkout is `work/centring-dashboard` in this Codex workspace.
-Sites keeps a remote Git source history plus versioned deployment archives.
-The supported Sites source workflow commits and pushes the exact source before
-publishing. This checkout has no permanent GitHub remote configured.
+GitHub displays source code, not the running application. The dashboard's UI, API handlers, assets, tests, schema and build scripts are all in `dashboard/` on `main`. The earlier marketing handoff is on `staging`.
 
-## What is stored where
+## Team access and first migration
 
-- Code, bundled fonts/images, schemas and build instructions: Git source and Sites deployment versions.
-- Uploaded originals, document text, drafts and review state: browser IndexedDB (`centring-documents`). These are not a cloud document backup.
-- Tasks, application records, saved opportunities, discussions and other workspace state: browser localStorage (`centring-demo-v1`).
-- Confirmed project and organisation answers: server D1 table `nonprofit_knowledge`, scoped by the authenticated account. The base Committee for Children profile is defined in server source.
-- Provider API keys and authentication secrets: hosting runtime configuration; local development values are ignored `.env` files. Never commit these to GitHub.
+Use the existing workspace login at the application URL. Team members using that same login share documents, applications, tasks, saved opportunities, reports, discussions, and organisation details. Individual member accounts, invites, role permissions and concurrent document co-editing are not yet available.
 
-Clearing browser data or changing browser/device can lose access to browser-only records. A source backup cannot restore those records. Download important original and edited documents from Documents now. The current discussion/workspace is not a fully synced multi-user database.
+Each browser with earlier work must open the cloud status in the header and select **Upload this device's work** once. This preserves existing shared records and adds missing local records. If a document ID already exists, it uploads a separate local copy. Keep the original browser data until the status confirms cloud saving. A browser on a different machine cannot automatically retrieve another machine's unuploaded files.
 
-## GitHub source and deployment workflow
+Click **Sync and refresh** when the header says team updates are available. Independent workspace edits can merge; same-field conflicts keep the local work for review. Document conflicts offer **Save local edits as copies**. Original file bytes are preserved.
 
-The public repository is https://github.com/Bhola-Rice/centring-website.
-Dashboard source lives under `dashboard/` on `main` after the initial pull request
-is merged. The existing marketing handoff remains on `staging`.
+## Storage locations
 
-1. Pull current `main`, create a focused branch, and edit `dashboard/`.
-2. Run `npm ci`, `npm test`, and `npm run build` inside that folder.
-3. Push the branch and open a pull request. Dashboard CI runs on relevant changes
-   and retains a downloadable build artifact for 14 days.
-4. Merge reviewed changes to `main`. Publish that source through the existing
-   Sites workflow, preserving the project ID above and its runtime configuration.
-5. Record the GitHub commit, Sites source commit, published version and previous
-   working version in release notes. Keep the prior version for rollback.
+| Data | Storage |
+|---|---|
+| Source, fonts, images, tests, schema, guides | GitHub `dashboard/` plus Sites source history |
+| Original uploads and document versions | Private R2 object storage, binding `BUCKET` |
+| Current document/workspace version pointers | D1 `cloud_records`, binding `DB` |
+| Confirmed organisation/project answers | D1 `nonprofit_knowledge` |
+| Local offline copies and unsynced changes | IndexedDB and localStorage in the browser |
+| Personal profile/photo, chat history and unsent replies | Browser-local |
+| API keys, authentication secrets | Hosting runtime secrets, never GitHub |
 
-GitHub pushes and merges do not automatically publish to Sites. The artifact is
-a build output, not a database or secrets backup. Hosting access is required to
-publish; contributors do not get production credentials by cloning the repository.
+Storage routes require authentication and isolate keys by account. The current shared login deliberately maps to one workspace. Files are limited to 10 MB each, record payloads to 4 MB, and workspaces to 500 stored record IDs. These are an initial shared-workspace implementation, not a claim of enterprise scale or guaranteed recovery.
 
-Track source, bundled assets, tests, schema/migrations, manifests and documentation.
-Never commit `.env.local`, provider keys, session secrets, customer documents,
-local runtime databases, installed dependencies or generated `dist/`.
+## Backups and recovery
 
-## Durable customer data is a separate next step
+The header's **Download backup** exports this browser's loaded documents (including original bytes), workspace state, and retained pre-migration state as JSON. Refresh first to include team updates. This export is private customer data: store it securely, never commit it. It does not include provider secrets or the separate D1 knowledge table. There is no in-app backup import yet; retain exports for administrator-assisted recovery.
 
-Before real team-wide use, migrate documents to private object storage and
-workspace records to an authenticated database with per-organisation membership,
-access checks, audit history, backups and a tested restore process. Include an
-explicit import/export path for existing browser data. GitHub holds code, never
-customer grant documents or credentials. Configure database/object-storage backup
-and retention separately from deployment rollback.
+Every cloud record write stores an immutable R2 JSON version. A D1 pointer selects the current version; deletion creates a tombstone without purging prior objects. An administrator with storage access can locate the account's `versions/{kind}/{recordId}/` objects, inspect the correct version, and restore it through an authenticated version-checked record PUT. Blob references resolve under that same account's `files/` prefix. Do not manually change an owner prefix. Recovery should be tested on a separate workspace before altering live records.
+
+Deployment rollback changes code only. It does not rewind customer data. Provision independent D1 exports and object-store backups/retention before relying on this for production-critical records. Current retained versions protect against accidental edits but are not an independent disaster-recovery backup.
+
+## Development and deployment
+
+```sh
+git clone https://github.com/Bhola-Rice/centring-website.git
+cd centring-website/dashboard
+npm ci
+npm test
+npm run build
+npm run dev
+```
+
+Use Node.js 24+. Development data goes in ignored `.sites-runtime/` and never reaches production. Copy `.env.example` for optional local provider configuration. Do not copy live secrets or customer files into the repo.
+
+1. Branch from current `main`; make focused changes in `dashboard/`.
+2. Run tests and build, then open a PR. GitHub Actions checks dashboard changes and retains a build artifact.
+3. Merge reviewed source. Publication remains an explicit Sites operation; a GitHub merge alone does not publish.
+4. Use the Sites source workflow to push that exact source, package `dist/`, save a version, and deploy it to project `appgprj_6af2758b377c81919295eacece5cab1c`.
+5. Preserve `.openai/hosting.json`, DB/BUCKET bindings, runtime secrets and the existing audience. Deployment applies the checked-in Drizzle migrations. Do not provision a second site accidentally.
+6. Record the GitHub commit, Sites source commit/version and prior working version in release notes. Verify sign-in, document save/reload, workspace save, and account isolation.
+
+GitHub collaborators need repository write permission to contribute. Production publishing access is separate. A clone includes everything needed to build the code, but intentionally excludes live private documents, database contents, credentials, node_modules and generated dist. The repository is public.
