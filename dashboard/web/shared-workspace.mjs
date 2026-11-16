@@ -8,7 +8,7 @@ export function createSharedWorkspace({getState,apply,status}){
  const announce=message=>{status(message);cloudNotice(message);};
  function remember(){if(!ready)return;localStorage.setItem(storageKey(),JSON.stringify({base,revision,local:sharedPart(getState())}));}
  async function start(){await connectCloud();const record=await cloudRead('workspace','main');base=record.data||{};revision=record.revision;const pending=JSON.parse(localStorage.getItem(storageKey())||'null');
-  if(pending){const merged=mergeCloud(pending.base,pending.local,base);conflicts=merged.conflicts;apply(merged.value);}
+  if(pending){const merged=mergeCloud(pending.base,pending.local,base);conflicts=merged.conflicts;apply(merged.value);if(conflicts.length){base=structuredClone(pending.base);revision=pending.revision;}}
   else if(record.data)apply(record.data);
   ready=true;announce(conflicts.length?'Review conflicting changes':revision?'Saved to cloud':'Ready to save to cloud');
   if(pending&&!conflicts.length)await flush();
@@ -20,7 +20,9 @@ export function createSharedWorkspace({getState,apply,status}){
    const latest=await cloudRead('workspace','main');const merged=mergeCloud(base,local,latest.data||{});conflicts=merged.conflicts;if(conflicts.length){remember();announce('Review conflicting changes');return;}
    const saved=await cloudWrite('workspace','main',latest.revision,merged.value);
    // Keep edits made while the request was in flight, rather than replacing them.
-   const during=mergeCloud(local,sharedPart(getState()),merged.value);base=structuredClone(merged.value);revision=saved.revision;apply(during.value);remoteUpdate=false;
+   const during=mergeCloud(local,sharedPart(getState()),merged.value);
+   if(during.conflicts.length){conflicts=during.conflicts;apply(during.value);remember();announce('Review conflicting changes');return;}
+   base=structuredClone(merged.value);revision=saved.revision;apply(during.value);remoteUpdate=false;
    if(JSON.stringify(sharedPart(getState()))===JSON.stringify(base)){localStorage.removeItem(storageKey());announce('Saved to cloud');}else{remember();again=true;}
   }catch(e){announce(e.status===409?'A teammate updated this workspace; retry sync':'Saved locally; retry cloud sync');}
   finally{busy=false;if(again){again=false;changed();}}
