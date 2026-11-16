@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#151b15">
+  <meta name="description" content="Sign in to your Centring grant workspace.">
+  <title>Sign in · Centring</title>
+  <link rel="preload" href="/assets/Sentient-Regular.otf" as="font" type="font/otf" crossorigin>
+  <link rel="stylesheet" href="/signin.css">
+</head>
+<body>
+  <div class="landscape" aria-hidden="true"><img src="/assets/signin-landscape.jpg" alt="" fetchpriority="high"></div>
+  <header><a class="brand" href="/signin" aria-label="Centring sign in">Centring</a></header>
+  <main>
+    <section class="signin-card" aria-labelledby="signin-title">
+      <div class="card-intro"><h1 id="signin-title">Welcome back.</h1><p>Sign in to your workspace.</p></div>
+      <form id="signin-form">
+        <label for="username">Username</label>
+        <input id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="100" placeholder="Enter your username" required>
+        <label for="password">Password</label>
+        <div class="password-field"><input id="password" name="password" type="password" autocomplete="current-password" maxlength="256" placeholder="Enter your password" required><button id="password-toggle" type="button" aria-label="Show password" aria-pressed="false">Show</button></div>
+        <p id="signin-error" role="alert" hidden></p>
+        <button class="submit" id="signin-submit" type="submit">Sign in <span aria-hidden="true">→</span></button>
+      </form>
+      <p class="session-note">Documents and drafts are saved on this device.</p>
+    </section>
+  </main>
+  <footer><span>Centring</span><span class="footer-divider" aria-hidden="true"></span><span>Your nonprofit workspace</span></footer>
+  <script type="module" src="/signin.js"></script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "name": "centring-dashboard",
+  "private": true,
+  "version": "7.0.0",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/dev.mjs",
+    "test": "node --test tests/*.test.*"
+  },
+  "dependencies": {
+    "@tesseract.js-data/eng": "1.0.0",
+    "docx-preview": "0.4.1",
+    "dompurify": "3.4.17",
+    "mammoth": "1.13.0",
+    "pdfjs-dist": "6.5.438",
+    "tesseract.js": "7.0.0"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.11",
+    "drizzle-orm": "^0.45.4"
+  }
+}

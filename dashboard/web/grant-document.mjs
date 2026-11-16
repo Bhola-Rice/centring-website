@@ -1,0 +1,12 @@
+// Store the official listing as a separate, downloadable source snapshot.
+// Uploads and existing working copies must never be overwritten by an import.
+export async function importedGrantDocument(grant,source,existing,makeDocx,now=new Date().toISOString()){
+ if(!grant||!/^\d{1,10}$/.test(String(grant.id))||!grant.name||grant.url!=='https://www.grants.gov/search-results-detail/'+grant.id)throw new Error('An official Grants.gov notice is required.');
+ const id='grant-notice-'+grant.id;
+ const reference=source&&source.id!==id?{id:source.id,name:source.name,text:String(source.text||'').slice(0,60000)}:existing?.referenceSource||null;
+ if(existing){if(existing.id!==id||existing.importedGrantId!==String(grant.id))throw new Error('The saved document does not match this notice.');return {...existing,starred:true,updatedAt:now,opportunity:grant,referenceSource:reference};}
+ const amount=value=>value===null||value===undefined?'Not specified':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(value);
+ const text=[grant.name,'Official opportunity snapshot\nSource: Grants.gov\nOpportunity number: '+(grant.number||'Not specified')+'\nAgency: '+(grant.agency||'Not specified')+'\nOfficial notice: '+grant.url+'\nRetrieved: '+(grant.fetchedAt||now),'Application deadline\n'+(grant.forecast?'Estimated: ':'')+(grant.deadline||'Not specified')+(grant.deadlineNote?'\n'+grant.deadlineNote:''),'Funding\nMinimum award: '+amount(grant.awardMin)+'\nMaximum award: '+amount(grant.awardMax)+'\nCost sharing: '+(grant.costSharing===null||grant.costSharing===undefined?'Not specified':grant.costSharing?'Required — check notice':'Not required in listing'),'Eligibility\n'+(grant.eligibility||'Check the official notice for eligibility requirements.')+'\n'+(grant.applicantTypes||[]).join('\n'),'About the opportunity\n'+(grant.description||'Read the official notice for full details.'),'Source notes\nThis is a saved copy of the official listing, not the funder’s full application packet. Check the official notice for updates, required attachments and submission instructions.'].join('\n\n');
+ const original=await makeDocx(text);
+ return {id,importedGrantId:String(grant.id),name:grant.name.replace(/[\\/:*?"<>|\u0000-\u001f]/g,' ').slice(0,110)+' — grant notice.docx',type:original.type,size:original.size,text,original,createdAt:now,updatedAt:now,extractionVersion:2,draft:{text:'',fields:{}},application:'',starred:true,opportunity:grant,referenceSource:reference};
+}
