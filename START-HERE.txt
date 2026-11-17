@@ -1,0 +1,94 @@
+CENTRING — TEAM HANDOFF
+Prepared November 6, 2026
+
+LIVE SITE
+https://centring-kiwi.loftyninja.chatgpt.site/
+The live site is publicly viewable. Viewing does not grant editing or publishing access.
+Source snapshot: 55b938f1f651f15871f46cccf9d76cb52f646be5
+
+WHAT IS INCLUDED
+source/ — complete tracked application code, lockfile, build scripts and README.
+source/public/ — deployed video (MP4), poster, Beedy image and installed Sentient fonts.
+assets/original-videos/ — latest original Landing_Page_Video_Beedy.mov and earlier preserved MP4.
+assets/fonts/ — original supplied Sentient font ZIP. Font license material is also in source/public/fonts/.
+assets/beedy/ — original Beedy artwork used on the site and supplied structure reference.
+docs/ — Centring PDFs found in the project asset folder, including brand and 360 references.
+
+The earlier Centring_Landing_page_video.mov is no longer at its supplied location.
+Its previously deployed MP4 is included instead. That version was remuxed from the MOV
+without re-encoding, preserving the video and audio streams.
+No separate Figma file or editable video project is included: neither is available in this checkout.
+The unrelated prospect spreadsheet is not part of this website handoff.
+
+RUN LOCALLY
+1. Install Node.js 22.13 or newer (Node 22 LTS recommended).
+2. Unzip this package and open a terminal inside its source directory.
+3. Run:
+   npm run install:ci
+   npm run dev
+4. Open the localhost URL printed in the terminal (normally http://127.0.0.1:5173).
+5. Stop the server with Ctrl+C.
+Dependency installation requires Internet access. Dependencies are not bundled in this ZIP.
+
+EDIT
+app/page.tsx — page sections, navigation, FAQs and video player.
+app/globals.css — layout, responsive rules, Sentient typography and colors.
+app/story-chapters.ts — Find, Build, Prepare and Review copy.
+app/walkthrough.tsx — interactive product examples and Sarah Holmes review content.
+app/scroll-story.tsx — horizontal scenes and scroll timing.
+app/beedy-walk.tsx — articulated Beedy gait.
+public/ — static assets. URLs omit public/ (public/beedy.png becomes /beedy.png).
+
+Brand: Centring is the company; Beedy is the kiwi. White and kiwi green #8EE53F.
+Preserve the Sentient family and existing artwork. The sample funding walkthrough is illustrative;
+it is not a connected grants database and does not submit applications.
+
+REPLACE THE VIDEO
+Export H.264 video with AAC audio in an MP4 container. Keep the original MOV in assets.
+Replace source/public/centring-introduction.mp4 and its JPG poster, or change the paths
+in app/page.tsx. The player currently uses click-to-play, audio, controls and inline playback.
+Optional FFmpeg commands, run from source/ after installing FFmpeg:
+   ffmpeg -i /path/to/input.mov -c copy -movflags +faststart public/new-video.mp4
+   ffmpeg -ss 2 -i public/new-video.mp4 -frames:v 1 public/new-poster.jpg
+Stream copy works when the original already uses browser-compatible H.264/AAC.
+Update page.tsx to the new asset names. Do not just rename a MOV extension to MP4.
+
+CHECK BEFORE PUBLISHING
+   npx tsc --noEmit
+   npm run build
+   npm start
+The last command previews the production build locally; it does NOT publish.
+Check desktop and mobile layouts, all four chapters, video/audio controls and reduced-motion behavior.
+
+PUBLISH TO THE EXISTING LIVE SITE (CHATGPT/CODEX SITES)
+The deployment is managed by Sites, not by uploading the ZIP to the live web page.
+1. Use an account authorized to edit this existing Site, with the Sites plugin connected.
+   The owner must grant editing access; public viewing alone is insufficient.
+2. Open the source folder in Codex. Ask it:
+   "Use the Sites skill to synchronize and publish my changes to the existing Centring site.
+   Preserve project_id appgprj_6aee81844a6881918132da27e241f903 and its public audience.
+   Compare this handoff with the current source before applying changes. Do not create a new site."
+3. Sites opens/synchronizes the source repository with a fresh authorized credential,
+   runs checks/builds, pushes the exact source, saves the matching deployment archive,
+   and deploys the saved version using the public/shared-site deployment operation.
+4. Confirm the deployment succeeds and check the live URL.
+The .openai/hosting.json file identifies the existing Site. Keep that identity for updates.
+Do not use the owner-private publishing operation now that this Site is public.
+The Sites helper scripts live in the installed plugin; they are not bundled credentials or
+standalone commands in this package. See source/README.md for framework details.
+
+TEAM WORKFLOW
+Put source/ in a team-owned private Git repository. Use branches and review changes before release.
+Keep original videos and PDFs in a shared asset folder so teammates can upload and download them.
+Uploading files to that folder does not deploy them. A designated editor should publish releases.
+This ZIP includes no credentials, .git history, node_modules, local environment files or tool caches.
+It does not grant repository or production access. No team invitations were sent by this handoff.
+
+OTHER HOSTING
+This project uses React/TypeScript with Vinext and a Cloudflare Worker build, not plain static HTML.
+Moving it to another host requires configuring that host's Worker/deployment integration and domain.
+Do not assume a static ZIP upload or a generic Next.js deployment will reproduce the existing hosting.
+
+INTEGRITY
+SHA256SUMS.txt lists each included file's checksum. This package is a snapshot; future website edits
+will not automatically update it. Original documents are included as supplied, not revised.
