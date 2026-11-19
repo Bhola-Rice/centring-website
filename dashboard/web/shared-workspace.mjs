@@ -1,5 +1,5 @@
 import {connectCloud,cloudAccount,cloudRead,cloudWrite,mergeCloud,cloudNotice} from './cloud-client.mjs';
-const sharedKeys=['saved','fitReviews','familyNavigationTaskSeeded','applications','readiness','report','tasks','org','mission','discussions','federalGrants','workspacePhoto','workspaceLogo','applicationPhotos'];
+const sharedKeys=['saved','savedResearch','fitReviews','familyNavigationTaskSeeded','applications','readiness','report','tasks','org','mission','discussions','federalGrants','workspacePhoto','workspaceLogo','applicationPhotos'];
 export const sharedPart=state=>Object.fromEntries(sharedKeys.filter(k=>state[k]!==undefined).map(k=>[k,structuredClone(state[k])]));
 export function importMissing(remote,local){if(Array.isArray(remote)&&Array.isArray(local)){if(local.every(x=>x&&typeof x.id==='string'))return [...remote,...local.filter(x=>!remote.some(y=>y.id===x.id))];return [...new Set([...remote,...local])];}if(remote&&local&&typeof remote==='object'&&typeof local==='object'&&!Array.isArray(remote)&&!Array.isArray(local)){const out={...remote};for(const [k,v] of Object.entries(local))out[k]=k in out?importMissing(out[k],v):v;return out;}return remote===undefined?local:remote;}
 export function createSharedWorkspace({getState,apply,status}){

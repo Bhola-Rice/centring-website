@@ -1,3 +1,4 @@
+import {fromRetiredWorkspace} from '../web/workspace-origin.mjs';
 const upbring = {
  id:'upbring', version:2, name:'Upbring', reviewedAt:'2026-11-19', website:'https://upbring.org/',
  mission:'Upbring works across Texas to break the cycle of child abuse by empowering children, families and communities.',
@@ -18,5 +19,13 @@ export function organisationForIdentity(identity){return identity?structuredClon
 export function bindOrganisation(workspace,profile){
  const next={...workspace};delete next.organisationProfile;
  if(profile){next.organisationProfile=structuredClone(profile);next.organisation=profile.name;next.profile={...next.profile,organisation:profile.name,mission:profile.mission};}
+ if(profile?.id==='upbring'){
+  for(const [key,section] of Object.entries(next)){
+   if(!fromRetiredWorkspace(section))continue;
+   if(Array.isArray(section))next[key]=section.filter(record=>!fromRetiredWorkspace(record));
+   else if(key==='applications')next[key]=Object.fromEntries(Object.entries(section).filter(([,record])=>!fromRetiredWorkspace(record)));
+   else if(key!=='organisationProfile')delete next[key];
+  }
+ }
  return next;
 }

@@ -1,5 +1,5 @@
 const names={pharos:'Pharos',arachne:'Arachne'};
-export function createFundingLibrary({esc,render,showDialog,dateLabel,fitControls,startDraft,openFederal}){
+export function createFundingLibrary({esc,render,showDialog,dateLabel,fitControls,startDraft,openFederal,getSaved=()=>[],save}){
  let fit=true,source='',query='',page=1,results=[],total=0,busy=false,error='',request=0,started=false;
  let includeClosed=false,selectedId=null;
  const statusLabel=value=>String(value).replaceAll('_',' ').toLowerCase();
@@ -15,17 +15,18 @@ export function createFundingLibrary({esc,render,showDialog,dateLabel,fitControl
   }catch{if(ticket===request)error='Couldn’t load funding research.';}
   finally{if(ticket===request){busy=false;render();}}
  }
+ function findRow(id){return results.find(r=>r.id===id)||getSaved().find(r=>r.id===id);}
  function detailBody(row){
   const url=/^https?:\/\//i.test(row.url||'')?`<a class="textlink" href="${esc(row.url)}" target="_blank" rel="noopener noreferrer">Open funder notice ↗</a>`:'';
   const federalId=row.id.match(/^pharos-grants_gov\/(\d+)$/)?.[1];
   const draftButton=`<button class="btn primary" data-draft-research="${esc(row.id)}">Draft in Documents</button>`;
   const notice=federalId?`<button class="btn" data-live-notice="${federalId}">Review live notice</button>`:url;
   const reference=row.reference?`<p class="note">${esc(row.reference)}</p>`:'';
-  return `<p class="research-funder">${esc(row.funder)}</p>${fitControls({researchId:row.id})}<div class="notice-actions">${draftButton}${notice}</div><div class="notice-facts"><div><small>Source status</small><strong>${esc(statusLabel(row.status))}</strong></div><div><small>Listed date</small><strong>${row.date?dateLabel(row.date):'No date listed'}</strong></div></div>${row.summary?'<p>'+esc(row.summary)+'</p>':''}${reference}`;
+  return `<p class="research-funder">${esc(row.funder)}</p>${fitControls({researchId:row.id})}<div class="notice-actions">${draftButton}<button type="button" class="btn" data-save-research="${esc(row.id)}">${getSaved().some(r=>r.id===row.id)?'Remove from saved':'Save opportunity'}</button>${notice}</div><div class="notice-facts"><div><small>Source status</small><strong>${esc(statusLabel(row.status))}</strong></div><div><small>Listed date</small><strong>${row.date?dateLabel(row.date):'No date listed'}</strong></div></div>${row.summary?'<p>'+esc(row.summary)+'</p>':''}${reference}`;
 
  }
  function open(id,besideResults=false){
-  const row=results.find(r=>r.id===id);
+  const row=findRow(id);
   if(!row)return;
   if(besideResults&&window.matchMedia('(min-width: 960px)').matches){
    selectedId=id;render();
@@ -44,10 +45,20 @@ export function createFundingLibrary({esc,render,showDialog,dateLabel,fitControl
   query=String(data.get('q')).trim();source=String(data.get('source'));includeClosed=data.has('closed');page=1;void search();
  });
  document.addEventListener('click',e=>{
-  const button=e.target.closest('[data-research],[data-funding-id],[data-draft-research],[data-live-notice]');if(!button)return;
+  const button=e.target.closest('[data-save-research],[data-research],[data-funding-id],[data-draft-research],[data-live-notice]');if(!button)return;
+  if(button.dataset.saveResearch){
+   const row=findRow(button.dataset.saveResearch);if(!row)return;
+   const saved=getSaved(),exists=saved.some(r=>r.id===row.id),dialog=button.closest('dialog');
+   if(save(exists?saved.filter(r=>r.id!==row.id):[row,...saved])){
+    render();
+    if(dialog && exists && !findRow(row.id))dialog.close();
+    else if(dialog)showDialog(`<h2 id="dialog-title">${esc(row.title)}</h2>`,detailBody(row));
+   }
+   return;
+  }
   if(button.dataset.liveNotice){void openFederal(button.dataset.liveNotice);return;}
   if(button.dataset.draftResearch){
-   const row=results.find(r=>r.id===button.dataset.draftResearch);
+   const row=findRow(button.dataset.draftResearch);
    if(row)startDraft({researchId:row.id,name:row.title,agency:row.funder,url:row.url,summary:row.summary});
    return;
   }
