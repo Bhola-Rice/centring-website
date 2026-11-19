@@ -2,7 +2,7 @@ import {test} from 'node:test';import assert from 'node:assert/strict';
 import {generateApplication,validateApplicationRequest,validateApplicationResult} from '../worker/application-draft.mjs';
 import {LANTERN_PROFILE} from '../worker/organisation.mjs';
 import {executeTool,validatePayload} from '../worker/agent.mjs';
-import {applicationText,applicationPanel,updateApplicationAnswer,approveApplicationAnswer} from '../web/application-draft.mjs';
+import {citationPanel,applicationText,applicationPanel,updateApplicationAnswer,approveApplicationAnswer} from '../web/application-draft.mjs';
 const sources=[{id:'application',role:'application',name:'Form',text:'Describe your organisation. Maximum 100 words.'},{id:'organisation',role:'organisation',name:'Profile',text:'Support children’s safety and well-being through research-based education, advocacy, and partnerships.'}];
 const result=()=>({title:'Education application',organisation:'Lantern Row Heritage Commons',form_status:'application_questions',fit:{assessment:'uncertain',summary:'Education aligns, but eligibility needs checking.',eligibility_checks:['Confirm applicant geography.']},sources,sections:[{question:'Describe your organisation.',question_quote:'Describe your organisation.',word_limit:100,answer:'Lantern Row Heritage Commons supports children’s safety and well-being through research-based education, advocacy, and partnerships.',evidence:[{source_id:'organisation',quote:sources[1].text}],missing:[]}]});
 test('application request requires funder context and applicant context',()=>{assert.throws(()=>validateApplicationRequest({mission:'Mission'}));assert.throws(()=>validateApplicationRequest({templateText:'Questions'}));assert.throws(()=>validateApplicationRequest({mission:'Mission',grantId:'evil.test'}));assert.ok(validateApplicationRequest({mission:'Mission',templateText:'Questions'}));});
@@ -14,3 +14,20 @@ test('AI application generation receives nonprofit and form as distinct evidence
 test('unsourced questions produce a provisional outline and incomplete AI output never saves a draft',async()=>{const r=result();r.sections[0].question_quote='Unavailable';const input={mission:'Mission',templateText:'General eligibility guidance'};const fake=async()=>Response.json({status:'completed',output:[{type:'message',content:[{type:'output_text',text:JSON.stringify(r)}]}]});assert.equal((await generateApplication(input,{},null,{OPENAI_API_KEY:'test'},fake)).application.form_status,'working_outline');await assert.rejects(generateApplication(input,{},null,{OPENAI_API_KEY:'test'},async()=>Response.json({status:'incomplete'})),/too long/);});
 
 test('chat can prepare an application workflow for the attached form without editing it',async()=>{const {prepareApplicationAction}=await import('../worker/agent.mjs');const actions=[];const form={id:'form',name:'Application.docx',text:'Describe your mission.'};const response=await prepareApplicationAction({grant_id:null,document_id:'form'},{documents:[form]},actions);assert.equal(response.status,'setup_ready');assert.equal(actions[0].documentId,'form');assert.equal(form.text,'Describe your mission.');const absent=await prepareApplicationAction({grant_id:null,document_id:'other'},{documents:[form]},[]);assert.match(absent.error,/Attach/);});
+
+test('citation reader highlights only a matching source passage and escapes source markup',()=>{
+ const html=citationPanel({name:'<Form>',text:'Before. Children’s   workshops include <arts>. After.'},"Children's workshops include <arts>.");
+ assert.match(html,/<mark>Children&#39;s workshops include &lt;arts&gt;\.<\/mark>/);
+ assert.match(html,/Before\./);assert.match(html,/After\./);assert.ok(!html.includes('<arts>'));assert.match(html,/&lt;Form&gt;/);
+});
+test('older drafts and unmatched quotations never show a fabricated source highlight',()=>{
+ for(const text of [undefined,'A different source passage.']){const html=citationPanel({name:'Legacy',text,url:'javascript:alert(1)'},'Saved quotation.');assert.ok(!html.includes('<mark>'));assert.ok(!html.includes('href='));assert.match(html,/Saved quotation\./);}
+});
+test('generated drafts retain source text and question provenance after saving as JSON',async()=>{
+ const input={mission:sources[1].text,templateText:sources[0].text,templateName:'Fictional form'};
+ const output=await generateApplication(input,{},null,{OPENAI_API_KEY:'test'},async()=>Response.json({status:'completed',output:[{content:[{type:'output_text',text:JSON.stringify(result())}]}]}));
+ const saved=JSON.parse(JSON.stringify(output.application));
+ assert.equal(saved.sections[0].questionSourceId,'application');
+ assert.equal(saved.sources.find(s=>s.id==='application').text,input.templateText);
+ assert.match(citationPanel(saved.sources.find(s=>s.id==='application'),saved.sections[0].question_quote),/<mark>Describe your organisation\.<\/mark>/);
+});

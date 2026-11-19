@@ -78,3 +78,21 @@ body{background:#f5f7f3;background-image:radial-gradient(ellipse at 94% 4%,#dff1
 .application-sidebar h2{font-family:Sentient,Georgia,serif;font-size:24px}.application-sidebar>p{color:#67745d;line-height:1.5;font-size:14px}.application-source-list{border-block:1px solid #e3e9dc;padding:14px 0;margin:20px 0}.application-source-list>div{display:flex;gap:12px;padding:10px 0}.application-source-list .icon{width:18px;flex:none;color:#819471}.application-source-list strong{font-size:12px;font-weight:500;overflow-wrap:anywhere}.application-source-list small{display:block;color:#78836c;font-size:11px;margin-top:4px}.application-sidebar h3{font-size:13px}.application-sidebar nav{display:grid;gap:14px;margin:20px 0 28px}.application-sidebar nav a{display:flex;gap:12px;font-size:12px;line-height:1.6;text-decoration:none;color:#66745b}.application-sidebar nav a span{color:#8a997d}.application-sidebar>.btn{white-space:normal;width:100%;font-size:12px}.application-sidebar>.textlink{margin-top:20px;font-size:12px}
 .application-progress-dialog{padding:8px 2px 10px}.application-progress-dialog ol{list-style:none;padding:18px 0;margin:12px 0;counter-reset:stage}.application-progress-dialog li{display:flex;gap:14px;align-items:center;padding:13px 0;color:var(--muted,#65715f);counter-increment:stage}.application-progress-dialog li:before{content:counter(stage);display:grid;place-items:center;width:29px;height:29px;border-radius:50%;background:#f1f4ee;border:1px solid #dde5d8;font-size:12px}.application-progress-dialog li.current{font-weight:600;color:#253921}.application-progress-dialog li.current:before{background:#8ee53f;border-color:#8ee53f}.application-live-status{padding:16px;border-radius:14px;background:#f4f7f1;line-height:1.6}.application-reading-notes{margin:16px 32px;padding:15px 18px;border:1px solid #e2e7dc;border-radius:12px;font-size:13px;background:#fafbf7}.application-reading-notes summary{cursor:pointer;font-weight:600}.application-reading-notes li{margin:9px 0;line-height:1.6}.application-source-list a{color:inherit;text-decoration:none}.application-source-list a:hover{text-decoration:underline}
 .source-preview:not(.review-source){background:linear-gradient(140deg,#f2f4f0,#e9ede6);padding:18px 20px 22px}.source-preview .word-preview{display:block;border-radius:8px;box-shadow:0 0 0 1px #dfe5da;height:78vh;min-height:480px;background:#f0f2ee}.preview-error{padding:12px 14px;background:#fff8eb;border:1px solid #e6dac1;border-radius:10px}.preview-retry{margin:0 0 14px}@media(max-width:650px){.source-preview:not(.review-source){padding:12px 8px}.source-preview .word-preview{min-height:360px;height:72vh}}
+
+.application-sidebar:has(.citation-reader) > :not(.citation-reader) { display:none }
+.citation-reader { min-width:0; overflow-wrap:anywhere }
+.citation-reader header { display:flex; align-items:flex-start; gap:1rem; justify-content:space-between }
+.citation-reader header button,.source-marker { border:1px solid #d8e1d4; background:#f4f7f1; color:#32492e; border-radius:.4rem; cursor:pointer; padding:.25rem .5rem }
+.citation-body { max-height:58vh; overflow:auto; line-height:1.7; margin:1rem 0 }
+.citation-body mark { background:#daf3c5; color:inherit }
+.evidence-links { display:flex; flex-wrap:wrap; gap:.4rem }
+
+.citation-reader { grid-column:1 / -1; font-size:14px }
+.citation-reader header h2 { margin:0; font-size:21px }
+.citation-reader header button { min-width:36px; min-height:36px; flex:none }
+.citation-body { position:relative }
+.citation-body p { margin:0 0 1rem }
+.citation-body mark { background:#d3ed96; box-shadow:0 0 0 2px #d3ed96 }
+.citation-note { color:#59664e; font-size:12px }
+.source-marker:focus-visible,.citation-reader button:focus-visible { outline:2px solid #43652e; outline-offset:3px }
+@media(max-width:1000px){.application-sidebar:has(.citation-reader){display:block}.citation-body{max-height:45vh}}

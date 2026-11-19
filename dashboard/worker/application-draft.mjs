@@ -22,7 +22,7 @@ export function validateApplicationResult(result,sources){
  const questionSources=sources.filter(s=>['application','notice'].includes(s.role));
  return {...result,sections:result.sections.map((s,i)=>{
   if(typeof s.question!=='string'||!s.question.trim()||typeof s.answer!=='string'||s.answer.length>16000||!Array.isArray(s.missing)||!Array.isArray(s.evidence))throw new Error('Beedy returned an invalid application answer.');
-  const verifiedQuestion=!!s.question_quote?.trim()&&questionSources.some(x=>normal(x.text).includes(normal(s.question_quote)));
+  const questionSource=s.question_quote?.trim()&&questionSources.find(x=>normal(x.text).includes(normal(s.question_quote)));
   const evidence=s.evidence.filter(e=>typeof e.quote==='string'&&e.quote.trim().length>=12&&sources.some(x=>x.id===e.source_id&&normal(x.text).includes(normal(e.quote))));
   const missing=s.missing.filter(x=>typeof x==='string'&&x.trim());
   if(s.evidence.length!==evidence.length)missing.push('One or more source references could not be verified. Check this answer against your records.');
@@ -30,7 +30,7 @@ export function validateApplicationResult(result,sources){
   const words=s.answer.trim()?s.answer.trim().split(/\s+/).length:0;
   if(wordLimit&&words>wordLimit)missing.push(`Shorten this answer to the stated ${wordLimit}-word limit.`);
   if(!s.answer.trim())missing.push('Provide an answer before approving this section.');
-  return {...s,id:'answer-'+i,evidence,missing:[...new Set(missing)],word_limit:wordLimit,verifiedQuestion,status:'draft'};
+  return {...s,id:'answer-'+i,evidence,missing:[...new Set(missing)],word_limit:wordLimit,verifiedQuestion:!!questionSource,questionSourceId:questionSource?.id||null,status:'draft'};
  })};
 }
 export async function generateApplication(input,workspace,profile,env,fetcher=fetch){
@@ -53,5 +53,5 @@ Never invent project budgets, dates, partners, impact numbers, registrations, ge
  let result;try{result=JSON.parse(output);}catch{throw new Error('Beedy did not return a complete application. Your source files are unchanged.');}
  const application=validateApplicationResult(result,sources);
  if(application.sections.some(s=>!s.verifiedQuestion))application.form_status='working_outline';
- return {application:{...application,projectId:request.projectId||null,organisation:profile?.name||workspace.organisation,createdAt:new Date().toISOString(),sources:sources.map(({id,name,role,url,truncated})=>({id,name,role,url,truncated})),retrievalWarnings:request.retrievalWarnings||[],grant},source:'openai'};
+ return {application:{...application,projectId:request.projectId||null,organisation:profile?.name||workspace.organisation,createdAt:new Date().toISOString(),sources:sources.map(({id,name,role,url,truncated,text})=>({id,name,role,url,truncated,text})),retrievalWarnings:request.retrievalWarnings||[],grant},source:'openai'};
 }

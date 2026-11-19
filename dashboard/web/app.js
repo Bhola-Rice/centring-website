@@ -6,7 +6,7 @@ import {voiceButton} from './voice.mjs';
 import {missingQuestions,memoryPanel,collectMemoryAnswers,applyRememberedUpdates,rememberedProfilePanel} from './project-memory.mjs';
 let profileMemory=null;
 import {readOpportunityMaterials} from './opportunity-draft.mjs';
-import {applicationPanel,applicationText,updateApplicationAnswer,approveApplicationAnswer} from './application-draft.mjs';
+import {citationPanel,applicationPanel,applicationText,updateApplicationAnswer,approveApplicationAnswer} from './application-draft.mjs';
 import {reviewPaper,reviewCards} from './inline-review.mjs';
 import {importedGrantDocument} from './grant-document.mjs';
 import {validateDocumentEdits,applyReviewedEdit,reviewAll,draftForOpportunity} from './document-edits.mjs';
@@ -624,6 +624,33 @@ document.addEventListener('click',async e=>{const action=e.target.closest('[data
  if(action==='cloud-refresh'){await retryLocalDocuments();await sharedWorkspace.refresh();}
  studioDocuments=await allDocuments();closeDialog();render();toast(cloudMessage);
  }catch(error){toast(error.message);}finally{if(button)button.disabled=false;}});
+
+document.addEventListener('click', event => {
+  const marker = event.target.closest('[data-question-source], [data-evidence-index]');
+  if (!marker) return;
+  const draft = studioDoc()?.applicationDraft;
+  const section = draft?.sections.find(item => 'application-' + item.id === marker.closest('.application-answer')?.id);
+  const sidebar = document.querySelector('.application-sidebar');
+  if (!section || !sidebar) return;
+  const evidence = section.evidence?.[marker.dataset.evidenceIndex];
+  const source = draft.sources.find(item => item.id === (marker.dataset.questionSource || evidence?.source_id));
+  if (!source) return;
+  sidebar.querySelector('.citation-reader')?.remove();
+  const reader = document.createElement('section');
+  reader.className = 'citation-reader';
+  reader.setAttribute('aria-labelledby', 'citation-title');
+  reader.innerHTML = citationPanel(source, evidence?.quote || section.question_quote);
+  sidebar.append(reader);
+  const close = reader.querySelector('button');
+  close.onclick = () => {reader.remove(); marker.focus();};
+  reader.onkeydown = e => {if(e.key === 'Escape') close.click();};
+  close.focus({preventScroll:true});
+  const body = reader.querySelector('.citation-body');
+  const highlight = body.querySelector('mark');
+  if (highlight) body.scrollTop = Math.max(0, highlight.offsetTop - body.offsetTop - 70);
+  if (matchMedia('(max-width:1000px)').matches) reader.scrollIntoView({block:'center'});
+});
+
 installGuidance({route,showDialog,closeDialog,openChat:()=>{chatOpen=true;refreshChat();$('#beedy-message')?.focus();}});
 removeRetiredClientBrief().catch(()=>{});
 startCalendarClock();render();checkAgentConnection();initStudio();loadOrganisationProfile();
