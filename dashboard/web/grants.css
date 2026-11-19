@@ -10,3 +10,27 @@
 .federal-row>div{min-width:0}
 .federal-title{max-width:100%;white-space:normal;overflow-wrap:anywhere}
 @container(max-width:560px){.federal-row{grid-template-columns:minmax(0,1fr);gap:14px}.federal-deadline{display:flex;flex-direction:column;align-items:flex-start}.federal-deadline .textlink{margin-top:4px}}
+
+.grant-desk { max-width: 90rem; margin-inline:auto; }
+.grant-desk h1 { max-width: 36ch; font-size:clamp(1.9rem,3vw,3rem); line-height:1.12; margin:.75rem 0 1.2rem; overflow-wrap:anywhere; }
+.grant-columns { display:grid; grid-template-columns:minmax(0,1.75fr) minmax(17rem,1fr); align-items:start; gap:clamp(1rem,2vw,2rem); margin-top:1.5rem; }
+.grant-columns > * { min-width:0; overflow-wrap:anywhere; }
+.grant-columns .opportunity-brief,.application-record,.grant-assistant { background:#fff; border:1px solid #dce2da; border-radius:18px; padding:clamp(1rem,2vw,2rem); }
+.grant-assistant { position:sticky; top:1rem; box-shadow:0 8px 28px #26372708; }
+.grant-assistant header { display:flex; gap:.65rem; align-items:center; padding-bottom:1rem; border-bottom:1px solid #e4e8e1; }
+.grant-assistant header img { width:34px; height:34px; object-fit:contain; }
+.grant-assistant header h2 { margin:0; font: 1.55rem Sentient,Georgia,serif; }
+.grant-thread { max-height:48vh; overflow:auto; }
+.grant-thread .answer-body { overflow-wrap:anywhere; }
+#grant-question { margin-top:1rem; display:grid; gap:.65rem; }
+#grant-question label,.record-edit summary,.record-photo summary { font-weight:600; }
+#grant-question textarea { width:100%; box-sizing:border-box; padding:.8rem; font:inherit; border:1px solid #ccd5ca; border-radius:10px; resize:vertical; }
+#grant-question button { justify-self:end; }
+.record-edit,.record-photo { margin:1rem 0; padding-block:.85rem; border-block-start:1px solid #dde3db; }
+.record-edit form,.record-photo section { margin-top:1rem; }
+.grant-desk { container-type:inline-size; }
+@container (max-width: 52rem) { .grant-columns { grid-template-columns:minmax(0,1fr); } .grant-assistant { position:static; } }
+.grant-draft-progress { border-top:1px solid #dce2da; margin-top:1rem; padding-top:1rem; }
+.grant-draft-progress h2 { font-size:1.25rem; }
+.grant-draft-progress ol { padding-inline-start:1.3rem; }
+.grant-prompts { display:grid; justify-items:start; gap:.65rem; padding-block:1rem .25rem; }
