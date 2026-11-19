@@ -1,3 +1,4 @@
+import {assessOpportunity} from './opportunity-fit.mjs';
 import {knowledgeProfile} from './knowledge.mjs';
 import {completeApplication,validateCompletion} from './application-completion.mjs';
 import {generateApplication,validateApplicationRequest} from './application-draft.mjs';
@@ -93,8 +94,13 @@ export async function handleAgent(request,env){
  if(request.method!=='POST')return json({error:'Method not allowed'},405);
  if(request.headers.get('origin')!==url.origin)return json({error:'This request must come from your dashboard.'},403);
  const identity=await beedyIdentity(request,env),user=identity?.id;if(!user)return json({code:'sign_in_required',error:'Sign in to Centring to use Beedy. Your document and question will stay here.'},401);
- if(!env.OPENAI_API_KEY)return json({code:'connection_required',error:'Beedy’s AI connection is not configured yet. The workspace owner can enable it securely.'},503);
+ const fitRequest=url.pathname==='/api/beedy/fit';
+ if(!fitRequest&&!env.OPENAI_API_KEY)return json({code:'connection_required',error:'Beedy’s AI connection is not configured yet. The workspace owner can enable it securely.'},503);
  const now=Date.now();for(const [key,v] of rates)if(v.until<now)rates.delete(key);let rate=rates.get(user);if(!rate){rate={until:now+60000,count:0};rates.set(user,rate);}if(++rate.count>12)return json({error:'Please wait a minute before asking Beedy again.'},429);
+ if(fitRequest){
+  try{return json(await assessOpportunity(url.searchParams.get('key')||'',env,identity));}
+  catch{return json({error:'Beedy couldn’t finish reviewing this notice.'},502);}
+ }
  if(!request.headers.get('content-type')?.includes('application/json'))return json({error:'JSON is required.'},415);
  try{if(Number(request.headers.get('content-length')||0)>1000000)return json({error:'Request too large'},413);const reader=request.body?.getReader();if(!reader)return json({error:'Missing message'},400);const chunks=[];let size=0;while(true){const {value,done}=await reader.read();if(done)break;size+=value.length;if(size>1000000){await reader.cancel();return json({error:'Request too large'},413);}chunks.push(value);}const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}let payload;try{payload=JSON.parse(new TextDecoder().decode(bytes));validatePayload(payload);if(payload.applicationRequest)validateApplicationRequest(payload.applicationRequest);if(payload.applicationCompletion)validateCompletion(payload.applicationCompletion);}catch(error){return json({error:error.message||'Invalid request'},400);}const profile=await knowledgeProfile(env,identity,payload.applicationCompletion?.projectId||payload.applicationRequest?.projectId||payload.projectId);const perform=onStep=>payload.applicationCompletion?completeApplication(payload.applicationCompletion,profile,env):payload.applicationRequest?generateApplication(payload.applicationRequest,bindOrganisation(payload.workspace,profile),profile,env,fetch,onStep):runAgent(payload,env,fetch,profile,onStep);
  if(!request.headers.get('accept')?.includes('application/x-ndjson'))return json(await perform());
