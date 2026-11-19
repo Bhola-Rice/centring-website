@@ -33,9 +33,8 @@ export function documentSheet(copy,{label,action='',full=false}){
  const sections=full?copy.sections:copy.sections.slice(0,2);
  return `<div class="case-paper"><header><span>${escape(label)}</span>${action}</header><div class="case-paper-body"><h3>${escape(copy.title)}</h3>${sections.map(s=>`<section><h4>${escape(s.question)}</h4><p>${escape(s.answer||(full?'No answer recorded.':'Awaiting a draft answer.'))}</p></section>`).join('')}</div></div>`;
 }
-// A fictional submitted document for the existing walkthrough record.
-export const heritageExample={title:'Neighbourhood Stories',sections:[
- {question:'Project summary',answer:'We will record oral histories with residents and bring their stories into a public exhibition at the community hall. Young volunteers will interview participants and prepare transcripts with their consent.'},
- {question:'Activities and access',answer:'Our team will host four recording sessions and an open exhibition. Participants can review their transcripts and choose which extracts the exhibition may include.'},
- {question:'Funding request',answer:'We request $30,000 for facilitation, transcription, accessible exhibition materials and venue hire.'}
+export const heritageExample={title:'Head Start Family Engagement',sections:[
+ {question:'Project summary',answer:'The proposed project would help families in participating early childhood programs connect with local services.'},
+ {question:'Activities and access',answer:'Family engagement staff would coordinate referrals and review follow-up needs with caregivers.'},
+ {question:'Funding request',answer:'This planning scenario requests $30,000 for family engagement staff time, interpretation and transportation.'}
 ]};
