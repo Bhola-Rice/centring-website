@@ -1,7 +1,10 @@
 // Operator-only ingestion. This route can write catalogue metadata only.
 export async function importFundingBatch(request,env){
  const reply=(message,status)=>Response.json(message,{status,headers:{'Cache-Control':'no-store'}});
- if(!env.FUNDING_IMPORT_KEY||!['GET','POST'].includes(request.method))return reply({error:'Not found'},404);
+ // The host may retain an old binding after its removal. Only a short-lived key is usable.
+ const credential=/^(\d{10})\.[a-f0-9]{64}$/.exec(env.FUNDING_IMPORT_KEY||'');
+ const expires=Number(credential?.[1]),now=Math.floor(Date.now()/1000);
+ if(!credential||expires<=now||expires>now+86400||!['GET','POST'].includes(request.method))return reply({error:'Not found'},404);
  if(request.headers.get('Authorization')!=='Bearer '+env.FUNDING_IMPORT_KEY)return reply({error:'Unauthorised'},401);
  if(request.method==='GET'){
   const {results}=await env.DB.prepare("SELECT source, count(*) AS total FROM funding_records WHERE source IN ('pharos','arachne') GROUP BY source").all();
