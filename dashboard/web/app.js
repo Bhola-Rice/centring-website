@@ -47,7 +47,7 @@ let selectedDate=pacificDate(),month=Number(selectedDate.slice(5,7))-1,year=Numb
 let sharedWorkspace=null,cloudMessage='Connecting cloud…',legacyWorkspace=null,cloudInitPromise=null;
 const persist=()=>{sharedWorkspace?.changed();try{localStorage.setItem('centring-lantern-workspace-v1',JSON.stringify(state))}catch{toast('Browser storage is unavailable. Changes last for this visit.')}};
 const research=createFundingLibrary({esc,render,showDialog,fitControls,startDraft:startOpportunityDraft,openFederal:id=>federal.open(id),dateLabel:date=>dateLabel(date,{day:'numeric',month:'short',year:'numeric'})});
-const federal=createGrantBrowser({research,esc,heading,fitControls,showDialog,closeDialog,render,getSaved:()=>Array.isArray(state.federalGrants)?state.federalGrants:[],save:items=>savePersonalState({...state,federalGrants:items}),toast,getDocumentId:id=>studioDocuments.find(d=>d.importedGrantId===String(id))?.id,openDocument:id=>{studioTab='insights';go('studio/'+id);},importGrant:async grant=>{const doc=await saveGrantNotice(grant,null);closeDialog();studioFilter='favorites';studioSearch='';go('library');toast('Grant notice saved in Documents.');return doc;},startDraft:grant=>startOpportunityDraft(grant),ask:prompt=>{chatDraft=prompt;floatingChat=false;chatOpen=true;refreshChat();$('#beedy-message')?.focus();},calendar:date=>{selectedDate=date;year=Number(date.slice(0,4));month=Number(date.slice(5,7))-1;go('calendar');}});
+const federal=createGrantBrowser({research,esc,heading,fitControls,showDialog,closeDialog,render,getSaved:()=>Array.isArray(state.federalGrants)?state.federalGrants:[],save:items=>savePersonalState({...state,federalGrants:items}),toast,getDocumentId:id=>studioDocuments.find(d=>d.importedGrantId===String(id))?.id,openDocument:id=>{studioTab='insights';go('studio/'+id);},importGrant:async grant=>{const doc=await saveGrantNotice(grant,null);closeDialog();studioFilter='favorites';studioSearch='';go('library');toast('Grant notice saved in Documents.');return doc;},startDraft:grant=>startOpportunityDraft(grant),calendar:date=>{selectedDate=date;year=Number(date.slice(0,4));month=Number(date.slice(5,7))-1;go('calendar');}});
 const dateLabel=(date,opts={day:'numeric',month:'short'})=>new Date(date+'T12:00:00').toLocaleDateString('en-GB',opts);
 const iso=(y,m,d)=>`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
 function pacificDate(now=new Date()){
@@ -280,14 +280,15 @@ function application(id){
  const url=c.notice?.url||c.doc?.applicationDraft.sources.find(s=>s.role==='notice')?.url;
  const sourceLink=/^https?:\/\//i.test(url||'')?`<a class="textlink" href="${esc(url)}" rel="noopener noreferrer" target="_blank">Open funder portal ↗</a>`:'';
  const copy=active?c.copy:archived||c.copy;
- const review=state.fitReviews?.[c.key];
+ const savedFit=state.fitReviews?.[c.key];
+ const review=savedFit?.beedy||savedFit;
  return `<div class="matter-room"><a class="matter-back" href="#applications">← Applications</a><header class="matter-head"><div><p class="matter-kicker">${esc(c.notice?.name||c.agency)}</p><h1>${esc(c.title)}</h1><p class="matter-byline">${esc(c.agency)} ${stageTag(c.stage)}</p></div>
  ${active?button('write','Open in Documents',true):archived?button('read','View submitted copy',true):''}</header>
  <div class="matter-layout"><section class="matter-main"><div class="desk-section-head"><h2>Application document</h2>${active?button('submit','Record submission'):''}</div>
  ${documentSheet(copy,{label:active?'Working draft':archived?(archived.example?'Illustrative submitted copy':'Submitted copy'):'Saved application details',action:archived&&!active?`<small>${dateLabel(archived.date)}</small>`:''})}
  <div class="desk-section-head"><h2>Assigned tasks <small>${c.tasks.length}</small></h2>${button('task','+ Add task')}</div>${c.tasks.map(taskRow).join('')||'<p class="desk-empty">No tasks assigned to this application.</p>'}</section>
  <aside class="matter-aside"><section><h2>${archived?.preparation?'Completion at submission':'Completion'}</h2>${progressHTML(c.progress)}<small>${c.legacy?'Preparation checklist and assigned tasks':'Approved answers and completed tasks'}</small></section>
- <section><h2>Application details</h2><dl><dt>Status</dt><dd>${esc(stageLabel(c.stage))}</dd>${c.legacy?`<dt>Owner</dt><dd>${esc(ownerName(c.legacy.owner))}</dd><dt>Requested</dt><dd>${esc(money(c.legacy.amount))}</dd>`:''}${(c.legacy?.deadline||c.notice?.deadline)?'<dt>Deadline</dt><dd>'+dateLabel(c.legacy?.deadline||c.notice.deadline)+'</dd>':''}${archived?'<dt>Submitted</dt><dd>'+dateLabel(archived.date)+'</dd>':''}${archived?.reference?'<dt>Reference</dt><dd>'+esc(archived.reference)+'</dd>':''}${c.doc?.funderDecision?.date?'<dt>Decision date</dt><dd>'+dateLabel(c.doc.funderDecision.date)+'</dd>':''}${review?'<dt>Fit decision</dt><dd>'+esc(review.decision)+'</dd>':''}</dl>${review?.note?'<p class="desk-empty">'+esc(review.note)+'</p>':''}${sourceLink}
+ <section><h2>Application details</h2><dl><dt>Status</dt><dd>${esc(stageLabel(c.stage))}</dd>${c.legacy?`<dt>Owner</dt><dd>${esc(ownerName(c.legacy.owner))}</dd><dt>Requested</dt><dd>${esc(money(c.legacy.amount))}</dd>`:''}${(c.legacy?.deadline||c.notice?.deadline)?'<dt>Deadline</dt><dd>'+dateLabel(c.legacy?.deadline||c.notice.deadline)+'</dd>':''}${archived?'<dt>Submitted</dt><dd>'+dateLabel(archived.date)+'</dd>':''}${archived?.reference?'<dt>Reference</dt><dd>'+esc(archived.reference)+'</dd>':''}${c.doc?.funderDecision?.date?'<dt>Decision date</dt><dd>'+dateLabel(c.doc.funderDecision.date)+'</dd>':''}${review?'<dt>'+ (savedFit?.beedy?'Beedy fit review':'Previous team review')+'</dt><dd>'+esc(review.decision)+'</dd>':''}</dl>${review?.note?'<p class="desk-empty">'+esc(review.note)+'</p>':''}${sourceLink}
  ${c.legacy?button('details',active?'Manage preparation':'Manage follow-up'):c.stage==='submitted'?button('decision','Record funder decision'):''}</section>
  <section><div class="desk-section-head"><h2>Related documents</h2>${button('link','+ Link')}</div>${files.map(d=>`<a class="case-file" data-open-support href="#studio/${esc(d.id)}">${icon('file')}<span>${esc(d.name)}</span></a>`).join('')||'<p class="desk-empty">No documents linked.</p>'}</section></aside></div></div>`;
 }
@@ -320,22 +321,47 @@ function linkedTaskContext(task){
  const record=taskCase(task);
  return record?.title||task.opportunityTitle||'';
 }
+const fitRequests=new Map();
+function fitReviewBody(key){
+ const record=state.fitReviews?.[key];
+ const current=fitRequests.get(key);
+ const review=current?.result||record?.beedy;
+ const retry='<button type="button" class="textlink" data-refresh-fit="'+esc(key)+'">Retry review</button>';
+ if(current?.busy)return '<p role="status">Comparing the notice with your organisation’s programmes and eligibility.</p>';
+ if(current?.error)return '<p role="status">'+esc(current.error)+'</p>'+retry;
+ if(!review)return '<p role="status">Opening fit review…</p>';
+ const source=/^https?:\/\//i.test(review.url||'')?'<a class="textlink" href="'+esc(review.url)+'" target="_blank" rel="noopener noreferrer">'+esc(review.source)+' ↗</a>':esc(review.source);
+ return '<h4>'+esc(review.decision)+'</h4><p>'+esc(review.note)+'</p><p><strong>Eligibility</strong> '+esc(review.eligibility)+'</p><footer>'+source+' · '+esc(dateLabel(review.reviewedAt.slice(0,10)))+'</footer>'+
+  (review.kind==='screen'?'<p class="note">Preliminary programme screen. The AI connection is required for a full review.</p>'+retry:'<button type="button" class="textlink" data-refresh-fit="'+esc(key)+'">Refresh review</button>');
+}
+function updateFitReview(key){
+ for(const el of document.querySelectorAll('[data-fit-result]'))if(el.dataset.fitResult===key)el.innerHTML=fitReviewBody(key);
+}
+async function runFitReview(key,refresh=false){
+ const current=fitRequests.get(key);
+ const saved=current?.result||state.fitReviews?.[key]?.beedy;
+ if(current?.busy||(!refresh&&(current?.error||Date.now()-Date.parse(saved?.reviewedAt)<86400000)))return;
+ fitRequests.set(key,{busy:true});updateFitReview(key);
+ try{
+  const res=await fetch('/api/beedy/fit?'+new URLSearchParams({key}),{method:'POST',signal:AbortSignal.timeout(90000)});
+  const result=await res.json();if(!res.ok)throw Error(result.error||'The review is unavailable.');
+  fitRequests.set(key,{result});
+  savePersonalState({...state,fitReviews:{...state.fitReviews,[key]:{...state.fitReviews?.[key],beedy:result}}});
+ }catch(error){fitRequests.set(key,{error:error.name==='TimeoutError'?'The review took too long. Please retry.':error.message});}
+ updateFitReview(key);
+}
 function fitControls(grant){
- const key=opportunityKey(grant),review=state.fitReviews?.[key];
- const tasks=state.tasks.filter(t=>t.opportunityKey===key&&!t.related);
- return `<div class="fit-actions" data-notice-research="${esc(grant.researchId||'')}" data-notice-live="${esc(grant.id||'')}"><button type="button" data-fit-review="${esc(key)}" data-title="${esc(grant.name)}">${review?esc(review.decision)+' · Edit fit review':'Review fit'}</button></div>${review?.note?'<p class="fit-team-note">'+esc(review.note)+'</p>':''}${tasks.map(t=>'<a class="case-file" href="#tasks/'+esc(t.id)+'">'+icon('check')+esc(t.title)+' · '+esc(ownerName(t.owner))+'</a>').join('')}`;
+ const key=opportunityKey(grant),previous=state.fitReviews?.[key];
+ queueMicrotask(()=>runFitReview(key));
+ return '<section class="beedy-fit"><h3>Beedy fit review</h3><div data-fit-result="'+esc(key)+'" aria-live="polite">'+fitReviewBody(key)+'</div>'+
+  (previous?.decision?'<details><summary>Previous team review</summary><p>'+esc(previous.decision)+' · '+esc(previous.note||'')+'</p></details>':'')+'</section>';
 }
 document.addEventListener('click',async e=>{
- const button=e.target.closest('[data-case-action],[data-case-filter],[data-fit-review],[data-work-edit],[data-work-step]');
+ const button=e.target.closest('[data-case-action],[data-case-filter],[data-refresh-fit],[data-work-edit],[data-work-step]');
  if(!button)return;
  try{
  if(button.dataset.caseFilter){appFilter=button.dataset.caseFilter;render();return;}
- const origin=button.closest('dialog .fit-actions')?.dataset;
- const returnNotice=origin?{research:origin.noticeResearch,live:origin.noticeLive}:null;
- if(button.dataset.fitReview){
-  const key=button.dataset.fitReview,review=state.fitReviews?.[key]||{};
-  caseDialog('Review opportunity fit',`<form id="fit-review-form" data-title="${esc(button.dataset.title)}" data-return-research="${esc(returnNotice?.research)}" data-return-live="${esc(returnNotice?.live)}" data-key="${esc(key)}" class="work-form"><h3>${esc(button.dataset.title)}</h3><label class="field">Team assessment<select name="decision">${['Needs checking','Pursue','Pass'].map(value=>`<option ${review.decision===value?'selected':''}>${value}</option>`).join('')}</select></label><label class="field">Reason and eligibility checks<textarea name="note" maxlength="3000" rows="3" placeholder="Consider programme alignment, geography and applicant requirements.">${esc(review.note||'')}</textarea></label><div class="dialog-actions"><button class="btn primary">Save fit review</button><button class="textlink" type="submit" value="follow-up">Save and assign a follow-up</button></div></form>`);return;
- }
+ if(button.dataset.refreshFit){await runFitReview(button.dataset.refreshFit,true);return;}
  if(button.dataset.workEdit){editTaskDialog(button.dataset.workEdit);return;}
  if(button.dataset.workStep!==undefined){
   const task=state.tasks.find(t=>t.id===button.dataset.id),check=task?.checks[Number(button.dataset.workStep)];
@@ -370,14 +396,11 @@ document.addEventListener('click',async e=>{
  }catch(error){toast(error.message);button.disabled=false;}
 });
 document.addEventListener('submit',async e=>{
- const f=e.target;if(!['fit-review-form','case-link-form','case-submission-form','case-decision-form'].includes(f.id))return;
+ const f=e.target;if(!['case-link-form','case-submission-form','case-decision-form'].includes(f.id))return;
  e.preventDefault();const values=new FormData(f),buttons=f.querySelectorAll('button');
  if(f.dataset.saving)return;f.dataset.saving='true';buttons.forEach(b=>b.disabled=true);
  try{
  let ok;
- if(f.id==='fit-review-form'){
-  ok=savePersonalState({...state,fitReviews:{...state.fitReviews,[f.dataset.key]:{decision:String(values.get('decision')),note:String(values.get('note')).trim()}}});
- }else{
   const c=caseInfo(f.dataset.id);if(!c)throw Error('Application unavailable.');
   if(f.id==='case-link-form'){
    const id=String(values.get('file'));if(!studioDoc(id))throw Error('File unavailable.');
@@ -393,12 +416,8 @@ document.addEventListener('submit',async e=>{
    if(!date||date>pacificDate()||(c.submitted?.date&&date<c.submitted.date))throw Error('Check the decision date.');
    ok=await saveCaseFields(c,{funderDecision:{outcome,date}});
   }
- }
  if(ok){
-  closeDialog();render();
-  if(f.id==='fit-review-form' && e.submitter?.value==='follow-up'){
-   addTask({key:f.dataset.key,title:f.dataset.title,returnNotice:{research:f.dataset.returnResearch,live:f.dataset.returnLive}});
-  }else{returnToNotice(f);}
+  closeDialog();render();returnToNotice(f);
   toast('Saved');
  }
  }catch(error){toast(error.message);}finally{delete f.dataset.saving;buttons.forEach(b=>b.disabled=false);}

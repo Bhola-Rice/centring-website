@@ -38,3 +38,9 @@
 @media(max-width:1050px){#research-search{grid-template-columns:1fr;gap:10px}}
 @media(max-width:959px){.research-workspace.with-selection{grid-template-columns:1fr}.funding-reader{position:static}}
 @media(max-width:650px){#research-search .federal-controls{grid-template-columns:minmax(0,1fr) auto}#research-search .research-archive{grid-column:1/-1;grid-row:2;min-height:30px}.funding-heading{flex-wrap:wrap;gap:8px}.funding-heading .opportunity-drafts{max-width:100%}}
+
+.beedy-fit {margin:18px 0;padding:16px 0;border-block:1px solid var(--line);overflow-wrap:anywhere}
+.beedy-fit h3 {margin:0 0 12px;font:600 14px/1.4 var(--sans)}
+.beedy-fit h4 {margin:0;font:400 21px/1.25 var(--serif)}
+.beedy-fit p {margin:8px 0;font-size:14px;line-height:1.55}
+.beedy-fit footer,.beedy-fit details {margin:10px 0;color:var(--muted);font-size:12px}

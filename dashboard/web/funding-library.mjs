@@ -20,15 +20,8 @@ export function createFundingLibrary({esc,render,showDialog,dateLabel,fitControl
   const federalId=row.id.match(/^pharos-grants_gov\/(\d+)$/)?.[1];
   const draftButton=`<button class="btn primary" data-draft-research="${esc(row.id)}">Draft in Documents</button>`;
   const notice=federalId?`<button class="btn" data-live-notice="${federalId}">Review live notice</button>`:url;
-  const matches=(row.matches||[]).map(term=>{
-   const inTitle=row.title.toLowerCase().includes(term),field=inTitle?row.title:row.summary;
-   const at=field?.toLowerCase().indexOf(term)??-1;
-   if(at<0)return '';
-   const from=Math.max(0,at-70),to=Math.min(field.length,at+term.length+90);
-   return `<blockquote><small>${inTitle?'Notice title':'Listing summary'}</small>${from?'…':''}${esc(field.slice(from,at))}<mark>${esc(field.slice(at,at+term.length))}</mark>${esc(field.slice(at+term.length,to))}${to<field.length?'…':''}</blockquote>`;
-  }).join('');
   const reference=row.reference?`<p class="note">${esc(row.reference)}</p>`:'';
-  return `<p class="research-funder">${esc(row.funder)}</p><div class="notice-actions">${draftButton}${notice}</div><div class="notice-facts"><div><small>Source status</small><strong>${esc(statusLabel(row.status))}</strong></div><div><small>Listed date</small><strong>${row.date?dateLabel(row.date):'No date listed'}</strong></div></div>${matches?`<section class="fit-reason"><h3>Why this surfaced</h3><p>The listing mentions ${row.matches.map(t=>'“'+esc(t)+'”').join(', ')} from your programme profile.</p><details><summary>View matching passage${row.matches.length===1?'':'s'}</summary>${matches}</details><small>Confirm geography and applicant eligibility in the funder’s notice.</small></section>`:''}${row.summary?'<p>'+esc(row.summary)+'</p>':''}${reference}${fitControls({researchId:row.id,name:row.title})}`;
+  return `<p class="research-funder">${esc(row.funder)}</p>${fitControls({researchId:row.id})}<div class="notice-actions">${draftButton}${notice}</div><div class="notice-facts"><div><small>Source status</small><strong>${esc(statusLabel(row.status))}</strong></div><div><small>Listed date</small><strong>${row.date?dateLabel(row.date):'No date listed'}</strong></div></div>${row.summary?'<p>'+esc(row.summary)+'</p>':''}${reference}`;
 
  }
  function open(id,besideResults=false){
