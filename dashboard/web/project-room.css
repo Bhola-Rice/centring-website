@@ -1,0 +1,37 @@
+body:has(.grant-desk,.project-room,.studio-layout) {background:#fafbf9}
+#main:has(.grant-desk,.project-room,.studio-layout):focus {outline:none}
+.project-room,.grant-desk:has(.opportunity-brief) {max-width:58rem;margin:auto}
+.project-room .back {font-size:.82rem;color:#58635a}
+.project-heading {padding:clamp(2rem,6vh,5rem) 0 1.6rem}
+.project-heading p {color:#5a655e;margin:.4rem 0}
+.project-room .project-heading h1 {font:normal clamp(2.3rem,4vw,3.75rem)/1.08 Sentient,Georgia,serif;letter-spacing:-.035em;margin:.6rem 0 .9rem;overflow-wrap:anywhere}
+.project-tabs {display:flex;gap:1.4rem;border-bottom:1px solid #d6dcd5;margin-bottom:2rem}
+.project-tabs button {font:inherit;background:none;color:#59635c;border:0;padding:.65rem 0;cursor:pointer}
+.project-tabs button[aria-pressed=true] {color:#213528;box-shadow:inset 0 -2px #28432f}
+.grant-columns:has(.opportunity-brief) {display:flex;flex-direction:column}
+.grant-columns:has(.opportunity-brief)>* {width:100%}
+.grant-columns:has(.opportunity-brief)>.grant-assistant {order:-1}
+.grant-desk .grant-assistant {display:flex;flex-direction:column;position:static;background:transparent;border:0;padding:1rem 0;box-shadow:none}
+.grant-desk .grant-assistant header {border:0;padding:0 0 .7rem}
+.grant-desk .grant-assistant header h2 {font-size:1.35rem}
+.grant-desk #grant-question {display:flex;align-items:flex-end;background:white;border:1px solid #cbd3cb;border-radius:18px;padding:.7rem;box-shadow:0 4px 16px #25342709;margin:.4rem 0}
+.grant-desk #grant-question:focus-within {border-color:#6b8470}
+.grant-desk #grant-question textarea {background:transparent;border:none;min-width:0;flex:1;outline:0;box-shadow:none;min-height:3rem;max-height:12rem}
+.grant-desk #grant-question button {background:#253a2c;color:white;border:0;border-radius:50%;width:2.5rem;height:2.5rem;padding:0;font-size:1.1rem}
+.grant-thread:has(.grant-prompts) {order:2}
+.grant-assistant [data-draft-slot] {order:3}
+.grant-prompts {display:flex;flex-wrap:wrap;gap:1rem}
+.grant-columns .opportunity-brief {border:0;border-top:1px solid #dde3dd;border-radius:0;background:transparent;padding:1.5rem 0}
+.draft-setup {max-width:46rem}
+.draft-setup form {display:grid;gap:1.15rem}
+.draft-setup details,.assignment-settings {border-top:1px solid #dfe3dd;padding:.85rem 0}
+.draft-setup details[open] summary,.assignment-settings[open] summary {margin-bottom:1rem}
+.draft-setup summary,.assignment-settings summary {cursor:pointer}
+.draft-setup textarea,.draft-setup select {width:100%;box-sizing:border-box}
+.draft-setup form>button {justify-self:end}
+.studio-heading h1 {overflow-wrap:anywhere;max-width:38ch;line-height:1.15}
+.studio-layout:has(.application-sidebar) .writing-surface,.studio-layout .application-sidebar {box-shadow:none;border-radius:8px}
+.studio-layout .application-sidebar {background:transparent;border:0;border-inline-start:1px solid #dce3dd;border-radius:0}
+.application-answer textarea.application-answer-input {font:normal 1.04rem/1.7 Sentient,Georgia,serif;background:transparent;border-color:transparent;border-radius:4px;padding:.65rem}
+.application-answer textarea.application-answer-input:hover,.application-answer textarea.application-answer-input:focus {background:white;border-color:#b6c3b7}
+@media(max-width:650px){.project-tabs{gap:.95rem}.project-heading{padding-top:2rem}.studio-layout .application-sidebar{border-inline:0;border-top:1px solid #dce3dd}}
