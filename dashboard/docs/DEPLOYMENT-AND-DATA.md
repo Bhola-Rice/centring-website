@@ -12,11 +12,11 @@ GitHub displays source code, not the running application. The dashboard's UI, AP
 
 Use the existing workspace login at the application URL. Team members using that same login share documents, applications, tasks, saved opportunities, reports, discussions, and organisation details. Individual member accounts, invites, role permissions and concurrent document co-editing are not yet available.
 
-Within the same workspace, a browser with unsynced work can open the cloud status in the header and select **Upload this device's work** once. This preserves existing shared records and adds missing local records. If a document ID already exists, it uploads a separate local copy. Keep the original browser data until the status confirms cloud saving. A browser on a different machine cannot automatically retrieve another machine's unuploaded files.
+Within the same workspace, a browser with unsynced work can open **Settings → Preferences → Workspace storage** and select **Upload this device's work** once. This preserves existing shared records and adds missing local records. If a document ID already exists, it uploads a separate local copy. Keep the original browser data until the status confirms cloud saving. A browser on a different machine cannot automatically retrieve another machine's unuploaded files.
 
 Every authenticated visitor starts with Upbring’s public organisation profile. People using the same demo sign-in share its saved records, files, branding, and confirmed project details. Separate accounts retain their own private records. The shared login keeps its existing storage identifier across releases.
 
-Click **Sync and refresh** when the header says team updates are available. Independent workspace edits can merge; same-field conflicts keep the local work for review. Document conflicts offer **Save local edits as copies**. Original file bytes are preserved.
+Click **Sync and refresh** in Workspace storage when team updates are available. Independent workspace edits can merge; same-field conflicts keep the local work for review. Document conflicts offer **Save local edits as copies**. Original file bytes are preserved.
 
 ## Storage locations
 
@@ -34,7 +34,7 @@ Storage routes require authentication and isolate keys by account. The current s
 
 ## Backups and recovery
 
-The header's **Download backup** exports this browser's loaded documents (including original bytes), workspace state, and retained pre-migration state as JSON. Refresh first to include team updates. This export is private customer data: store it securely, never commit it. The backup includes the public organisation profile and the current saved organisation and project answers from D1. Provider secrets are excluded. There is no in-app backup import yet; retain exports for administrator-assisted recovery.
+The **Download backup** action in Workspace storage exports this browser's loaded documents (including original bytes), workspace state, and retained pre-migration state as JSON. Refresh first to include team updates. This export is private customer data: store it securely, never commit it. The backup includes the public organisation profile and the saved organisation and project answers from D1. Offline exports record whether a cached copy was available. Provider secrets are excluded. There is no in-app backup import yet; retain exports for administrator-assisted recovery.
 
 Every cloud record write stores an immutable R2 JSON version. A D1 pointer selects the current version; deletion creates a tombstone without purging prior objects. An administrator with storage access can locate the account's `versions/{kind}/{recordId}/` objects, inspect the correct version, and restore it through an authenticated version-checked record PUT. Blob references resolve under that same account's `files/` prefix. Do not manually change an owner prefix. Recovery should be tested on a separate workspace before altering live records.
 
