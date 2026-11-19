@@ -25,20 +25,21 @@ body.chat-open .studio-breadcrumb{overflow-wrap:anywhere}
 }
 /* Small screens use two independently scrolling rows, not a narrow document. */
 @media(max-width:950px){
- body.chat-open{--sidebar:0px;--chat-width:100%;--chat-row:clamp(280px,42dvh,400px)}
+ body.chat-open{--sidebar:0px;--chat-width:100%;--chat-row:min(68dvh,calc(clamp(280px,42dvh,400px) + var(--composer-growth,0px)))}
  body.chat-open .sidebar{visibility:hidden;transform:translateX(-110%);width:235px}
  body.chat-open .sidebar.open{visibility:visible;transform:none;z-index:80}
  body.chat-open .topbar{margin-left:10px;margin-right:10px}
  body.chat-open .iconbtn.mobile-toggle{display:grid}
  body.chat-open .shell{top:72px;left:0;right:0;bottom:calc(var(--chat-row) + 20px)}
  body.chat-open .shell main{padding:16px 18px 28px}
- body.chat-open .beedy-panel{top:auto;left:10px;right:10px;bottom:8px;width:auto;height:var(--chat-row);max-width:none;border-radius:18px}
+ body.chat-open .beedy-panel{top:auto;left:10px;right:10px;bottom:8px;width:auto;height:var(--chat-row);overflow-y:auto;max-width:none;border-radius:18px}
  body.chat-open .chat-expand{display:none}
  body.chat-open .beedy-head{padding:10px 16px;gap:10px}
  body.chat-open .beedy-head h2{font-size:22px}
  body.chat-open .beedy-head .beedy-title span,body.chat-open .beedy-context,body.chat-open .chat-disclosure{display:none}
  body.chat-open .beedy-portrait{width:34px;height:34px}
  body.chat-open .beedy-portrait img{width:32px;height:32px}
+ body.chat-open .chat-reading-area{display:flex;flex-direction:column;flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}
  body.chat-open .chat-messages{min-height:35px;padding:12px 18px;flex:1}
  body.chat-open .chat-welcome{padding:0;text-align:left}
  body.chat-open .welcome-orbit{display:none}

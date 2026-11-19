@@ -123,7 +123,7 @@ body .beedy-launch:focus-visible{outline:2px solid var(--focus);outline-offset:4
 body .beedy-launch[aria-expanded=true]{display:none}
 body.beedy-floating #beedy-panel {
  top:auto; left:auto; right:max(16px,env(safe-area-inset-right)); bottom:max(16px,env(safe-area-inset-bottom));
- width:min(390px,calc(100vw - 32px)); height:min(620px,calc(100dvh - 32px)); max-width:none;
+ width:min(390px,calc(100vw - 32px)); height:min(calc(620px + var(--composer-growth,0px)),calc(100dvh - 32px)); max-width:none;
  background:white; border:1px solid var(--line); border-radius:16px; box-shadow:0 12px 48px #18211720,0 2px 8px #18211712;
  backdrop-filter:none; -webkit-backdrop-filter:none; overflow-y:auto;
 }
@@ -142,6 +142,6 @@ body.beedy-floating #beedy-panel {
 .beedy-floating .has-conversation .chat-suggestions,.beedy-floating .has-activity .chat-suggestions{display:none}
 .beedy-floating .compact-connection{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 0;margin:0 20px;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;font-size:12px}
 @media(max-width:480px){
- body.beedy-floating #beedy-panel{right:8px;bottom:max(8px,env(safe-area-inset-bottom));width:calc(100vw - 16px);height:min(580px,calc(100dvh - 20px - env(safe-area-inset-bottom)))}
+ body.beedy-floating #beedy-panel{right:8px;bottom:max(8px,env(safe-area-inset-bottom));width:calc(100vw - 16px);height:min(calc(580px + var(--composer-growth,0px)),calc(100dvh - 20px - env(safe-area-inset-bottom)))}
 }
 @media(prefers-reduced-motion:reduce){body .beedy-launch{transition:none}}
