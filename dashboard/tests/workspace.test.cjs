@@ -8,7 +8,7 @@ function workspace(existing,clock='2026-11-09T12:00:00-08:00'){
  const source=fs.readFileSync('web/workspace-origin.mjs','utf8').replace(/export /g,'')+'\n'+fs.readFileSync('web/funding-library.mjs','utf8').replace(/export /g,'')+'\n'+fs.readFileSync('web/guidance.mjs','utf8').replace(/export /g,'')+'\n'+fs.readFileSync('web/grants-ui.mjs','utf8').replace(/^import .*?;\n/gm,'').replace(/export /g,'')+'\n'+fs.readFileSync('web/agent-protocol.mjs','utf8').replace(/export /g,'')+'\n'+fs.readFileSync('web/document-core.mjs','utf8').replace(/export /g,'')+'\n'+fs.readFileSync('web/discussions.mjs','utf8').replace(/export /g,'')+'\n'+fs.readFileSync('web/app.js','utf8').replace(/^import .*?;\n/gm,'').replace(/startCalendarClock\(\);render\(\);checkAgentConnection\(\);initStudio\(\);loadOrganisationProfile\(\);\s*$/,'');
  const node={addEventListener(){},focus(){}};
  const context={Date:WorkspaceDate,console,crypto,structuredClone,localStorage:{getItem(){return existing?JSON.stringify(existing):null},setItem(){}},document:{querySelector(){return node},addEventListener(){}},window:{addEventListener(){}},location:{hash:'#today'},setTimeout,clearTimeout};
- context.removeRetiredClientBrief=async()=>{};vm.createContext(context);vm.runInContext(source+'\nrender=()=>{}; refreshChat=()=>{}; toast=()=>{}; this.api={pacificDate,weekStart,calendar,dayPreviewHTML,selectToday,getCalendar:()=>({year,month,selectedDate}),setCalendarFilter:v=>filter=v,notificationItems,setNotificationAddressed,notificationKey,photoSource,state,defaults,migrateDemo,applicationProgress,taskProgress,events,createAwardTasks,timelinePage,applyAgentProposal,undoAgentProposal,fingerprint,discussionsPage,replyToDiscussion,createDiscussionTask,clearBeedyChat,undoClearBeedyChat,isClearChatRequest,setBusy:v=>{agentBusy=v},getState:()=>state};',context);return context.api;
+ context.removeRetiredClientBrief=async()=>{};vm.createContext(context);vm.runInContext(source+'\nrender=()=>{}; refreshChat=()=>{}; toast=()=>{}; this.api={pacificDate,weekStart,calendar,dayPreviewHTML,selectToday,getCalendar:()=>({year,month,selectedDate}),setCalendarFilter:v=>filter=v,notificationItems,setNotificationAddressed,notificationKey,photoSource,state,defaults,migrateDemo,applicationProgress,taskProgress,events,createAwardTasks,timelinePage,applyAgentProposal,undoAgentProposal,fingerprint,discussionsPage,replyToDiscussion,createDiscussionTask,conversationMessages,setChatDocument:d=>{beedyDocument=d;studioDocuments=[d]},clearBeedyChat,undoClearBeedyChat,isClearChatRequest,setBusy:v=>{agentBusy=v},getState:()=>state};',context);return context.api;
 }
 test('clean demo includes preparation, submitted and awarded applications',()=>{const {state}=workspace();assert.equal(state.applications.creative.status,'draft');assert.equal(state.applications.heritage.status,'submitted');assert.equal(state.applications.spaces.status,'awarded');assert.equal(state.tasks.find(t=>t.id==='budget').owner,'alex')});
 test('preparation counts checklist steps rather than a made-up score',()=>{const api=workspace();assert.equal(api.applicationProgress(api.state.applications.creative).value,60);api.state.applications.creative.checks[3].done=true;assert.equal(api.applicationProgress(api.state.applications.creative).value,80)});
@@ -117,4 +117,26 @@ test('existing workspace adopts Upbring starter content without losing edits or 
  assert.equal(saved.tasks.find(task=>task.id==='budget').title,'Review caregiver navigation costs');
  assert.equal(saved.tasks.find(task=>task.id==='budget').done,true);
  assert.deepEqual(JSON.parse(JSON.stringify(workspace(saved).state)),JSON.parse(JSON.stringify(saved)));
+});
+
+test('switching grant notices isolates both the conversation and its clear/undo actions',()=>{
+ const api=workspace();
+ const notice={id:'title-x',name:'Title X notice.docx'};
+ const residential={id:'residential',name:'Residential services notice.docx'};
+ api.state.chat=[
+  {role:'user',text:'Review eligibility'},
+  {role:'assistant',documentName:residential.name,text:'Residential eligibility'},
+  {role:'user',chatDocumentId:notice.id,text:'Which costs qualify?'},
+  {role:'assistant',chatDocumentId:notice.id,text:'Title X costs'}
+ ];
+ api.setChatDocument(notice);
+ const texts=()=>Array.from(api.conversationMessages(),m=>m.text);
+ assert.deepEqual(texts(),['Which costs qualify?','Title X costs']);
+ assert.equal(api.clearBeedyChat(),true);
+ api.setChatDocument(residential);
+ assert.deepEqual(texts(),['Review eligibility','Residential eligibility']);
+ assert.equal(api.undoClearBeedyChat(),false);
+ api.setChatDocument(notice);
+ assert.equal(api.undoClearBeedyChat(),true);
+ assert.deepEqual(texts(),['Which costs qualify?','Title X costs']);
 });
