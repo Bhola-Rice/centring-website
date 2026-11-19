@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
-const source=readFileSync(new URL('../web/grants-ui.mjs',import.meta.url),'utf8').replace(/^import .*\n/,'').replace('export function','function');
+const source=readFileSync(new URL('../web/grants-ui.mjs',import.meta.url),'utf8').replace(/^import .*\n/gm,'').replace('export function','function');
 test('every saved opportunity and its deadline stay inside the results container',()=>{
  const listeners={};
  const context=vm.createContext({document:{addEventListener:(type,fn)=>listeners[type]=fn},Date,Intl});

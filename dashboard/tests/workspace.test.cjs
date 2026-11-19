@@ -3,11 +3,12 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
 const crypto=require('node:crypto');
-function workspace(existing){
- const source=fs.readFileSync('web/grants-ui.mjs','utf8').replace(/^import .*?;\n/gm,'').replace(/export /g,'')+'\n'+fs.readFileSync('web/agent-protocol.mjs','utf8').replace(/export /g,'')+'\n'+fs.readFileSync('web/document-core.mjs','utf8').replace(/export /g,'')+'\n'+fs.readFileSync('web/discussions.mjs','utf8').replace(/export /g,'')+'\n'+fs.readFileSync('web/app.js','utf8').replace(/^import .*?;\n/gm,'').replace(/startCalendarClock\(\);render\(\);checkAgentConnection\(\);initStudio\(\);loadOrganisationProfile\(\);\s*$/,'');
+function workspace(existing,clock='2026-11-09T12:00:00-08:00'){
+ class WorkspaceDate extends Date {constructor(...args){super(...(args.length?args:[clock]));} static now(){return Date.parse(clock);}}
+ const source=fs.readFileSync('web/guidance.mjs','utf8').replace(/export /g,'')+'\n'+fs.readFileSync('web/grants-ui.mjs','utf8').replace(/^import .*?;\n/gm,'').replace(/export /g,'')+'\n'+fs.readFileSync('web/agent-protocol.mjs','utf8').replace(/export /g,'')+'\n'+fs.readFileSync('web/document-core.mjs','utf8').replace(/export /g,'')+'\n'+fs.readFileSync('web/discussions.mjs','utf8').replace(/export /g,'')+'\n'+fs.readFileSync('web/app.js','utf8').replace(/^import .*?;\n/gm,'').replace(/startCalendarClock\(\);render\(\);checkAgentConnection\(\);initStudio\(\);loadOrganisationProfile\(\);\s*$/,'');
  const node={addEventListener(){},focus(){}};
- const context={console,crypto,structuredClone,localStorage:{getItem(){return existing?JSON.stringify(existing):null},setItem(){}},document:{querySelector(){return node},addEventListener(){}},window:{addEventListener(){}},location:{hash:'#today'},setTimeout,clearTimeout};
- vm.createContext(context);vm.runInContext(source+'\nrender=()=>{}; refreshChat=()=>{}; toast=()=>{}; this.api={pacificDate,weekStart,calendar,dayPreviewHTML,selectToday,getCalendar:()=>({year,month,selectedDate}),setCalendarFilter:v=>filter=v,notificationItems,setNotificationAddressed,notificationKey,photoSource,state,defaults,migrateDemo,applicationProgress,taskProgress,events,createAwardTasks,timelinePage,applyAgentProposal,undoAgentProposal,fingerprint,discussionsPage,replyToDiscussion,createDiscussionTask,clearBeedyChat,undoClearBeedyChat,isClearChatRequest,setBusy:v=>{agentBusy=v},getState:()=>state};',context);return context.api;
+ const context={Date:WorkspaceDate,console,crypto,structuredClone,localStorage:{getItem(){return existing?JSON.stringify(existing):null},setItem(){}},document:{querySelector(){return node},addEventListener(){}},window:{addEventListener(){}},location:{hash:'#today'},setTimeout,clearTimeout};
+ context.removeRetiredClientBrief=async()=>{};vm.createContext(context);vm.runInContext(source+'\nrender=()=>{}; refreshChat=()=>{}; toast=()=>{}; this.api={pacificDate,weekStart,calendar,dayPreviewHTML,selectToday,getCalendar:()=>({year,month,selectedDate}),setCalendarFilter:v=>filter=v,notificationItems,setNotificationAddressed,notificationKey,photoSource,state,defaults,migrateDemo,applicationProgress,taskProgress,events,createAwardTasks,timelinePage,applyAgentProposal,undoAgentProposal,fingerprint,discussionsPage,replyToDiscussion,createDiscussionTask,clearBeedyChat,undoClearBeedyChat,isClearChatRequest,setBusy:v=>{agentBusy=v},getState:()=>state};',context);return context.api;
 }
 test('clean demo includes preparation, submitted and awarded applications',()=>{const {state}=workspace();assert.equal(state.applications.creative.status,'draft');assert.equal(state.applications.heritage.status,'submitted');assert.equal(state.applications.spaces.status,'awarded');assert.equal(state.tasks.find(t=>t.id==='budget').owner,'alex')});
 test('preparation counts checklist steps rather than a made-up score',()=>{const api=workspace();assert.equal(api.applicationProgress(api.state.applications.creative).value,60);api.state.applications.creative.checks[3].done=true;assert.equal(api.applicationProgress(api.state.applications.creative).value,80)});
@@ -85,4 +86,19 @@ test('Today selection and calendar marker use current Pacific date',()=>{
 test('day preview shows complete titles, owners, completion and safe empty state',()=>{
  const api=workspace();api.state.tasks=[{id:'x',title:'<script>Keep the full grant title</script>',owner:'alex',date:'2026-11-11',type:'task',done:true,status:'done'}];
  const html=api.dayPreviewHTML('2026-11-11');assert.ok(html.includes('&lt;script&gt;Keep the full grant title&lt;/script&gt;'));assert.ok(!html.includes('<script>'));assert.ok(html.includes('Alex Rivera'));assert.ok(html.includes('Completed'));assert.ok(api.dayPreviewHTML('2099-01-01').includes('No events scheduled'));
+});
+
+test('new workspaces have upcoming sample milestones across a year boundary',()=>{
+ const api=workspace(null,'2026-12-30T12:00:00-08:00');
+ assert.equal(api.state.report.due,'2027-01-03');
+ assert.equal(api.state.tasks.find(t=>t.id==='team').date,'2027-01-01');
+ assert.equal(api.state.applications.spaces.fundingDate,'2027-01-10');
+ assert.equal(api.state.applications.spaces.amount,api.state.report.awarded);
+ assert.ok(api.events().every(event=>event.done||event.date>='2026-12-30'));
+ const saved=workspace(api.state,'2027-01-02T12:00:00-08:00');
+ assert.equal(saved.state.report.due,api.state.report.due);
+ saved.state.report.approved=true;
+ assert.equal(saved.events().find(e=>e.id==='report').done,false);
+ saved.state.report.sentOn='2027-01-02';
+ assert.equal(saved.events().find(e=>e.id==='report').done,true);
 });

@@ -1,6 +1,6 @@
 import {beedyIdentity} from './auth.mjs';
 import {organisationForIdentity} from './organisation.mjs';
-export function knowledgeOwner(identity){if(!identity)throw new Error('Sign in to save your profile.');return identity.id.startsWith('demo:')?'account:'+identity.name:'user:'+identity.id;}
+export function knowledgeOwner(identity){if(!identity)throw new Error('Sign in to save your profile.');if(identity.id.startsWith('demo:')&&identity.name==='BeedyRootKiwi')return 'preview:lantern-row:v1';return identity.id.startsWith('demo:')?'account:'+identity.name:'user:'+identity.id;}
 export function validateKnowledge(data){
  if(!data||!Array.isArray(data.facts)||!Array.isArray(data.projects)||data.facts.length>150||data.projects.length>50)throw new Error('Keep your saved profile to 150 details and 50 projects.');
  const ids=new Set();const projects=data.projects.map(p=>{if(!p||typeof p.id!=='string'||!/^[a-zA-Z0-9-]{1,80}$/.test(p.id)||ids.has(p.id)||typeof p.name!=='string'||!p.name.trim()||p.name.length>180)throw new Error('Add a valid, unique project.');ids.add(p.id);return {id:p.id,name:p.name.trim()};});

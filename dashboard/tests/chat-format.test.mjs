@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {renderChatMarkdown} from '../web/chat-format.mjs';
 test('answers render emphasis, paragraphs, lists and source references',()=>{
- const html=renderChatMarkdown('There are **6 teaching artists** in **Final Bell Kar.docx**.\n\n## Next steps\n1. Review the budget\n2. Confirm the date [Page 7]\n\n> Keep your original.');
+ const html=renderChatMarkdown('There are **6 teaching artists** in **Family Studio.docx**.\n\n## Next steps\n1. Review the budget\n2. Confirm the date [Page 7]\n\n> Keep your original.');
  assert.match(html,/<strong>6 teaching artists<\/strong>/);assert.match(html,/<h3>Next steps<\/h3>/);assert.match(html,/<ol start="1"><li>Review/);assert.match(html,/class="answer-citation">Page 7/);assert.match(html,/<blockquote>Keep your original/);assert.ok(!html.includes('**'));
 });
 test('source HTML and unsafe Markdown links cannot execute',()=>{

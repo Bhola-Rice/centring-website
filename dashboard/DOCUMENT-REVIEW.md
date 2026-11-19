@@ -31,10 +31,6 @@ The opportunity detail also has Import to Documents / Open saved document. Older
 
 ## Account organisation context
 
-The existing BeedyRootKiwi demo login loads a server-owned, versioned Committee for Children profile. It follows the account across sessions and devices; it does not depend on the browser’s local organisation name. Its researched mission, programmes, audiences, fit themes, sources, and known gaps are shown in Settings. Every Beedy request receives the trusted profile, including document review and opportunity analysis. New grant drafts use its known mission.
+The preview sign-in uses the fictional Lantern Row Heritage Commons profile. Its project brief is written for this walkthrough. Beedy uses that profile in drafting and review. Project targets are planning assumptions and the team must confirm eligibility and outstanding details.
 
-This is a public-research demo persona, not an official Committee for Children account. The existing team, awards and arts records are demo data, not CFC history. Uploaded documents remain their own evidence: Beedy must flag another organisation’s content rather than silently convert it into CFC facts. Website context does not establish grant eligibility, budgets, partners, registrations or project outcomes. Those details must be provided and checked.
-
-The profile is maintained in worker/organisation.mjs and deployed with the site. This account-level persistence does not add shared document storage: uploads, reviews and drafts still reside in each browser.
-
-Review interaction research: Google Docs official guidance, https://support.google.com/docs/answer/6033474?hl=en (suggestions in context, individual decisions and accept/reject all). Organisation sources: https://www.cfchildren.org/about-us/, https://www.cfchildren.org/programs/, https://www.cfchildren.org/. Reviewed 10 November 2026.
+The profile lives in worker/organisation.mjs. See docs/DEPLOYMENT-AND-DATA.md for shared storage and docs/UPBRING-WALKTHROUGH.md for the presentation.

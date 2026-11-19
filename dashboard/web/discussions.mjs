@@ -1,15 +1,18 @@
 // Browser-local demo conversations. No delivery or shared membership is implied.
-export function seedDiscussions() {
+export function seedDiscussions(today=new Date().toISOString().slice(0,10)) {
+  const prior=new Date(today+'T12:00:00Z');
+  prior.setUTCDate(prior.getUTCDate()-1);
+  const yesterday=prior.toISOString().slice(0,10);
   return [
     {id:'funding-arrival',title:'Getting ready for the funding',people:['sarah','alex','jordan'],related:'applications/spaces',resolved:false,messages:[
-      {id:'funding-1',author:'alex',body:'The award is confirmed. I’m checking the agreement before the expected payment on 20 November. Is there anything the studio needs first?',at:'2026-11-09T09:15:00'},
-      {id:'funding-2',author:'jordan',body:'The venue dates are the priority. I’ll confirm the access arrangements with the community centre so we can plan the first workshop.',at:'2026-11-09T09:32:00'}]},
+      {id:'funding-1',author:'alex',body:'The award is confirmed. I’m checking the agreement before the payment lands. Is there anything the studio needs first?',at:`${today}T09:15:00`},
+      {id:'funding-2',author:'jordan',body:'The venue dates are the priority. I’ll confirm the access arrangements with the community centre so we can plan the first workshop.',at:`${today}T09:32:00`}]},
     {id:'budget-check',title:'One last look at the workshop budget',people:['sarah','alex'],related:'tasks/budget',resolved:false,messages:[
-      {id:'budget-1',author:'sarah',body:'Alex, could we give the accessibility costs another look before the team review? I want to make sure we’ve left enough room for support.',at:'2026-11-09T08:40:00'},
-      {id:'budget-2',author:'alex',body:'Yes — the artist fees and venue costs are checked. Accessibility is the last item on my list.',at:'2026-11-09T08:55:00'}]},
+      {id:'budget-1',author:'sarah',body:'Alex, could we give the accessibility costs another look before the team review? I want to make sure we’ve left enough room for support.',at:`${today}T08:40:00`},
+      {id:'budget-2',author:'alex',body:'Yes — the artist fees and venue costs are checked. Accessibility is the last item on my list.',at:`${today}T08:55:00`}]},
     {id:'report-review',title:'Ready for our report review',people:['sarah','alex','jordan'],related:'reports/community-arts',resolved:true,messages:[
-      {id:'report-1',author:'jordan',body:'The workshop feedback is ready for Sarah to review alongside the programme summary.',at:'2026-11-08T14:10:00'},
-      {id:'report-2',author:'sarah',body:'Thanks, Jordan. That gives us what we need for the review. I’ll pick this up in the report.',at:'2026-11-08T14:30:00'}]}
+      {id:'report-1',author:'jordan',body:'The workshop feedback is ready for Sarah to review alongside the programme summary.',at:`${yesterday}T14:10:00`},
+      {id:'report-2',author:'sarah',body:'Thanks, Jordan. That gives us what we need for the review. I’ll pick this up in the report.',at:`${yesterday}T14:30:00`}]}
   ];
 }
 export function addDiscussionMessage(thread,body,{id,at}) {

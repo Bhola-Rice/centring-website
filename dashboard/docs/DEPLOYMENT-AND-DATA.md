@@ -12,7 +12,9 @@ GitHub displays source code, not the running application. The dashboard's UI, AP
 
 Use the existing workspace login at the application URL. Team members using that same login share documents, applications, tasks, saved opportunities, reports, discussions, and organisation details. Individual member accounts, invites, role permissions and concurrent document co-editing are not yet available.
 
-Each browser with earlier work must open the cloud status in the header and select **Upload this device's work** once. This preserves existing shared records and adds missing local records. If a document ID already exists, it uploads a separate local copy. Keep the original browser data until the status confirms cloud saving. A browser on a different machine cannot automatically retrieve another machine's unuploaded files.
+Within the same workspace, a browser with unsynced fictional work can open the cloud status in the header and select **Upload this device's work** once. This preserves existing shared records and adds missing local records. If a document ID already exists, it uploads a separate local copy. Keep the original browser data until the status confirms cloud saving. A browser on a different machine cannot automatically retrieve another machine's unuploaded files.
+
+The Upbring walkthrough uses a separate Lantern Row storage scope for the shared preview account, including document originals, workspace records, remembered answers, local documents and chat. Its starting brief is fictional. Previous workspaces are retained outside this walkthrough. Use only fictional files while presenting.
 
 Click **Sync and refresh** when the header says team updates are available. Independent workspace edits can merge; same-field conflicts keep the local work for review. Document conflicts offer **Save local edits as copies**. Original file bytes are preserved.
 
