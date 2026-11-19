@@ -1,0 +1,67 @@
+/* The source library gives way to the open document while the answer stays editable. */
+body:has(.application-sidebar),body:has(.federal-search){background:#f6f7f5}
+body:has(.application-sidebar) .shell main{max-width:1600px;padding:24px clamp(16px,2.3vw,42px);margin-inline:auto}
+body:has(.application-sidebar) .studio-breadcrumb{margin-bottom:14px;font-size:12px}
+body:has(.application-sidebar) .studio-heading{margin-bottom:22px}
+body:has(.application-sidebar) .studio-heading h1{font-size:clamp(24px,2.2vw,36px);font-weight:500;margin:0;letter-spacing:-.035em}
+body:has(.application-sidebar) .writing-surface,.studio-companion.application-sidebar{background:white;border:1px solid #dce1da;border-radius:12px;box-shadow:0 2px 6px #24382508;backdrop-filter:none}
+.studio-layout:has(.application-sidebar){grid-template-columns:minmax(225px,.37fr) minmax(0,1fr);align-items:start;gap:16px}
+.studio-layout:has(.application-sidebar) .writing-surface{grid-column:2;grid-row:1;min-width:0}
+.studio-companion.application-sidebar{grid-column:1;grid-row:1;display:block;position:sticky;top:16px;padding:20px;overflow:auto;max-height:calc(100dvh - 40px);min-width:0}
+.studio-layout:has(.citation-reader){grid-template-columns:minmax(0,1.05fr) minmax(0,1fr)}
+.studio-layout:has(.citation-reader) .writing-surface{grid-column:1}
+.application-sidebar:has(.citation-reader){grid-column:2;background:#f0f1ef;padding:0}
+.citation-reader header{padding:18px 20px;background:white;border-bottom:1px solid #dce1da;align-items:center}
+.citation-reader header h2{font-weight:600;line-height:1.45;font-family:inherit;font-size:17px}
+.source-location,.citation-note{font-size:12px;line-height:1.5;color:#546357}
+.source-location{margin:0;padding:12px 20px;background:#fafbf9;border-bottom:1px solid #dce1da}
+.citation-page-surface{padding:14px;max-height:65dvh;overflow:auto}
+.cited-page{position:relative;background:white;box-shadow:0 1px 4px #17261e2b}
+.cited-page canvas{display:block;width:100%;height:auto}
+.page-highlight{position:absolute;background:#9b90ff66;mix-blend-mode:multiply;pointer-events:none}
+.citation-word{display:block;width:100%;height:65vh;border:0}
+.citation-body{background:white;padding:22px;margin:14px;line-height:1.75}
+.citation-body mark{background:#ded9ff;box-shadow:none}
+.citation-reader>a{display:block;padding:12px 20px;background:white;font-size:13px}
+.source-index header{margin-bottom:18px}.source-index .application-eyebrow{font-size:10px;letter-spacing:.12em;font-weight:650}
+.source-index h2{margin:5px 0;font-size:25px;font-weight:500}
+.source-index input{width:100%;background:#f7f8f6;border:1px solid #d8ded6;border-radius:7px;padding:10px 12px;font:inherit;font-size:14px}
+.source-results{max-height:41vh;overflow:auto;margin:12px 0}
+.source-result{display:grid;width:100%;text-align:left;gap:4px;padding:13px 5px;font:inherit;color:inherit;background:transparent;border:0;border-bottom:1px solid #e6e9e3;cursor:pointer}
+.source-result:hover{background:#f2f5ef}.source-result small,.source-result span,.source-index li small{color:#5d6b60;font-size:12px}
+.source-result strong{font-weight:500;font-size:14px;line-height:1.4}.source-result[hidden],.citation-body[hidden]{display:none}
+.source-index details,.grant-project-details{border-top:1px solid #e4e8e1;padding:14px 0;font-size:14px}
+.source-index summary,.grant-project-details summary{cursor:pointer}.source-index li{margin:8px 0}.source-index ul{padding-left:16px}
+.source-index>.btn{width:100%;margin-top:10px}.grant-project-details{margin:0 28px}
+.application-answer-heading>div{flex:1 1 200px}.application-answer-heading>span:first-child{display:none}
+.application-answer-heading h3{font-family:inherit;font-size:19px;letter-spacing:-.02em}
+.application-answer-input{border-radius:6px;background:#fcfdfb;line-height:1.7;font-size:16px;padding:14px}
+.application-summary h2{font-size:26px}.application-fit{margin-block:16px;padding-bottom:12px}
+.application-answer{padding:16px 0 22px}.application-answer-heading{margin-bottom:12px}
+.application-answer-footer .source-marker,.application-answer-heading .source-marker{border:1px solid #dad6ed;background:#f4f2fb;color:#554476;font-family:inherit;font-weight:500;line-height:1.3;font-size:12px;border-radius:5px;padding:4px 7px}
+.source-marker[aria-pressed=true]{outline:2px solid #8271b6}.source-marker sup{font-weight:700}
+@media(min-width:1001px){
+ body:has(.application-sidebar):not(.chat-open),body:has(.federal-search):not(.chat-open){--sidebar:76px}
+ body:is(:has(.application-sidebar),:has(.federal-search)):not(.chat-open) .sidebar{width:60px;padding:14px 6px;align-items:center;border-radius:14px}
+ body:is(:has(.application-sidebar),:has(.federal-search)):not(.chat-open) .sidebar .brand{font-size:0;margin:4px auto 18px;padding:0}
+ body:is(:has(.application-sidebar),:has(.federal-search)):not(.chat-open) .sidebar .brand:before{content:'C';font:32px Georgia,serif;color:#304d3b}
+ body:is(:has(.application-sidebar),:has(.federal-search)):not(.chat-open) .sidebar .nav a{font-size:0;justify-content:center;gap:0;padding:12px;width:44px;margin:auto}
+ body:is(:has(.application-sidebar),:has(.federal-search)):not(.chat-open) .sidebar .person-link span{display:none}
+}
+@container workspace (max-width:780px){
+ .studio-layout:has(.application-sidebar),.studio-layout:has(.citation-reader){display:flex;flex-direction:column}
+ .studio-layout:has(.application-sidebar)>*{width:100%;box-sizing:border-box}
+ .studio-companion.application-sidebar{position:static;max-height:none}
+ .application-sidebar:has(.citation-reader){box-shadow:0 4px 16px #1c2d2320}
+}
+
+.opportunity-drafts{padding:15px 18px;border:1px solid #dce1da;border-radius:10px;background:#fff}
+.opportunity-drafts summary{cursor:pointer;font-size:15px;font-weight:600}.opportunity-drafts summary span{color:#687467;font-size:12px}
+.opportunity-drafts>div{display:flex;flex-wrap:wrap;gap:8px;max-height:150px;overflow:auto;margin-top:12px}
+.opportunity-drafts a{display:inline-flex;align-items:center;gap:8px;padding:9px 12px;background:#f5f6f3;border-radius:6px;text-decoration:none;color:inherit;font-size:14px}
+.opportunity-drafts .icon{width:16px;height:16px}
+
+.download-cited-original{display:block;margin:10px 16px 14px;background:white;border:1px solid #d9ddd8;border-radius:6px;padding:8px 12px;font:inherit;font-size:13px;cursor:pointer}
+body.chat-open .studio-layout:has(.application-sidebar){display:flex;flex-direction:column}
+body.chat-open .studio-layout:has(.application-sidebar)>*{width:100%;box-sizing:border-box}
+body.chat-open .studio-companion.application-sidebar{position:static;max-height:none}

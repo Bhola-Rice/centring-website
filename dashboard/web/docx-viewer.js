@@ -8,7 +8,24 @@ window.addEventListener('message',async event=>{
   const safe=DOMPurify.sanitize(styles.innerHTML+body.innerHTML,{ADD_TAGS:['style'],FORBID_TAGS:['script','iframe','object','embed','form','input','button','video','audio','link','meta'],FORBID_ATTR:['srcset','action','formaction'],RETURN_DOM_FRAGMENT:true});
   safe.querySelectorAll('a').forEach(a=>{a.removeAttribute('href');a.removeAttribute('target');});
   safe.querySelectorAll('img').forEach(img=>{if(!/^data:image\/(png|jpeg|gif|webp|bmp);base64,/i.test(img.getAttribute('src')||''))img.removeAttribute('src');});
-  document.getElementById('document').replaceChildren(safe);if(event.data.review)annotateReview(event.data.review,event.data.mode);document.getElementById('notice').textContent='Word layout preview. Pagination and unavailable fonts can differ from Microsoft Word; the original file is unchanged.';if(event.data.review){document.getElementById('notice').textContent=event.data.mode==='clean'?'Preview of accepted wording · Pending changes are not yet saved.':'Suggestions · Select a highlight to review it.';requestAnimationFrame(()=>window.scrollTo(0,event.data.scroll||0));}parent.postMessage({type:'docx-rendered'},'*');
+  document.getElementById('document').replaceChildren(safe);if(typeof event.data.citation==='string' && event.data.citation){
+    const quote=event.data.citation;
+    let found=false;
+    for(const paragraph of document.querySelectorAll('#document p')){
+     const at=paragraph.textContent.indexOf(quote);
+     if(at<0)continue;
+     const walker=document.createTreeWalker(paragraph,NodeFilter.SHOW_TEXT), range=document.createRange();
+     let pos=0,node;
+     while(node=walker.nextNode()){
+      if(pos<=at && at<pos+node.length)range.setStart(node,at-pos);
+      if(pos<at+quote.length && at+quote.length<=pos+node.length){range.setEnd(node,at+quote.length-pos);break;}
+      pos+=node.length;
+     }
+     const mark=document.createElement('mark');mark.append(range.extractContents());range.insertNode(mark);
+     requestAnimationFrame(()=>mark.scrollIntoView({block:'center'}));found=true;break;
+    }
+    parent.postMessage({type:'citation-result',found},'*');
+   }if(event.data.review)annotateReview(event.data.review,event.data.mode);document.getElementById('notice').textContent='Word layout preview. Pagination and unavailable fonts can differ from Microsoft Word; the original file is unchanged.';if(event.data.review){document.getElementById('notice').textContent=event.data.mode==='clean'?'Preview of accepted wording · Pending changes are not yet saved.':'Suggestions · Select a highlight to review it.';requestAnimationFrame(()=>window.scrollTo(0,event.data.scroll||0));}parent.postMessage({type:'docx-rendered'},'*');
  }catch{document.getElementById('notice').textContent='This Word document could not be previewed. Download the original or upload a PDF export.';parent.postMessage({type:'docx-error'},'*');}
 });
 parent.postMessage({type:'docx-ready'},'*');
