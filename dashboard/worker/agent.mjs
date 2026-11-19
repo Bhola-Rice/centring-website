@@ -59,23 +59,30 @@ export async function prepareGrantImport(args,workspace,actions,fetcher=fetch){
  return {status:'awaiting_import',grant,document:doc?{id:doc.id,name:doc.name}:null,message:'Import card ready. Clicking Import and analyse creates a saved grant-notice document in Documents, saves the opportunity, and starts a requirements review using the selected file as supporting evidence. No application is submitted.'};
 }
 function inputItems(output){return output.flatMap(item=>{if(item.type==='function_call')return [{type:'function_call',call_id:item.call_id,name:item.name,arguments:item.arguments}];if(item.type==='reasoning')return [{type:'reasoning',summary:item.summary||[],...(item.encrypted_content?{encrypted_content:item.encrypted_content}:{id:item.id})}];if(item.type==='message')return [{role:'assistant',content:(item.content||[]).filter(c=>c.type==='output_text').map(c=>c.text).join('\n')}];return [];});}
-export async function runAgent(payload,env,fetcher=fetch,organisationProfile=null){
+export async function runAgent(payload,env,fetcher=fetch,organisationProfile=null,onStep=()=>{}){
  const validated=validatePayload(payload);const {message,context,history}=validated;const workspace=bindOrganisation(validated.workspace,organisationProfile);const proposals=[],documentEdits=[],grantActions=[],applicationActions=[];
  const matches=new Map();
  const input=[...history,{role:'user',content:JSON.stringify({message,current_view:context,selected_document:workspace.documents?.[0]?{id:workspace.documents[0].id,name:workspace.documents[0].name}:null,demo_date:workspace.demoDate,current_date:new Date().toLocaleDateString('en-CA',{timeZone:'America/Los_Angeles'}),time_zone:'America/Los_Angeles'})}];
+ const activities={
+  prepare_application_draft:'Prepare the application workspace',prepare_grant_import:'Read the official grant listing',
+  propose_document_edits:'Prepare suggested edits',search_funding_library:'Search Pharos and Arachne',
+  search_federal_grants:'Search Grants.gov',get_federal_grant:'Read the funder notice',
+  inspect_workspace:'Read workspace records',propose_task_create:'Prepare a task',propose_task_update:'Prepare a task update',propose_application_update:'Prepare an application update',propose_readiness_update:'Prepare a readiness update'
+ };
  for(let turn=0;turn<7;turn++){
+  onStep(turn?'Compose a response using the results':'Review your request',context);
   const response=await fetcher('https://api.openai.com/v1/responses',{method:'POST',headers:{Authorization:`Bearer ${env.OPENAI_API_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({model:env.OPENAI_MODEL||'gpt-5.4-mini',instructions:instructions+(organisationProfile?`\nACCOUNT ORGANISATION PROFILE (server-owned): ${JSON.stringify(organisationProfile)}\nUse this profile as organisation context on every page, in uploaded-document review, grant fit, and drafting. Cite its sources. Do not replace its known mission with a placeholder. Preserve known facts in uploaded documents; if they describe a different organisation, flag the mismatch instead of silently attributing its work to the workspace organisation. Describe plans as proposed targets. Only report achieved outcomes when supported by the source. Treat website summaries as context, not proof of funder eligibility. Separate thematic fit, applicant eligibility, and project readiness. Never fabricate budgets, partners, registrations, outcomes, or claims of official affiliation. Draft from verified context; request only genuinely missing project details.`:``),store:false,include:['reasoning.encrypted_content'],input,tools:AGENT_TOOLS,parallel_tool_calls:false,tool_choice:turn===6?'none':'auto',max_output_tokens:6000,reasoning:{effort:'low'}}),signal:AbortSignal.timeout(45000)});
   if(!response.ok){const error=new Error(response.status===429?'Beedy’s AI service is busy or has reached its usage limit. Please try again later.':'Beedy could not reach the AI service. Check the server connection.');error.status=response.status===429?429:502;throw error;}
   const data=await response.json();if(data.status==='incomplete')throw new Error('Beedy ran out of room to finish. Try a shorter question.');
   const output=data.output||[];const calls=output.filter(i=>i.type==='function_call');
   if(!calls.length){const answer=output.filter(i=>i.type==='message').flatMap(i=>i.content||[]).filter(c=>c.type==='output_text').map(c=>c.text).join('\n');const refusal=output.flatMap(i=>i.content||[]).find(c=>c.type==='refusal');return {answer:answer||refusal?.refusal||'I couldn’t complete that answer. Please try again.',proposals,documentEdits,grantActions,applicationActions,grantResults:[...matches.values()],source:'openai'};}
-  input.push(...inputItems(output));for(const call of calls){let result;try{const args=JSON.parse(call.arguments);result=call.name==='prepare_application_draft'?await prepareApplicationAction(args,workspace,applicationActions,fetcher):call.name==='prepare_grant_import'?await prepareGrantImport(args,workspace,grantActions,fetcher):call.name==='search_funding_library'?await searchFunding(env.DB,args):call.name==='search_federal_grants'?await searchFederalGrants(args,fetcher):call.name==='get_federal_grant'?await getFederalGrant(args.id,fetcher):executeTool(call.name,args,workspace,proposals,documentEdits);
+  input.push(...inputItems(output));for(const call of calls){let result;try{const args=JSON.parse(call.arguments);onStep(activities[call.name]||'Check workspace information',String(args.query||args.keyword||args.section||''));result=call.name==='prepare_application_draft'?await prepareApplicationAction(args,workspace,applicationActions,fetcher):call.name==='prepare_grant_import'?await prepareGrantImport(args,workspace,grantActions,fetcher):call.name==='search_funding_library'?await searchFunding(env.DB,args):call.name==='search_federal_grants'?await searchFederalGrants(args,fetcher):call.name==='get_federal_grant'?await getFederalGrant(args.id,fetcher):executeTool(call.name,args,workspace,proposals,documentEdits);
    if(call.name==='search_federal_grants'){
     for(const {id,name,agency,status} of result.results){
      if(matches.size<24 || matches.has(id))matches.set(id,{id,name,agency,status});
     }
    }
-  }catch(error){result={error:error.status?error.message:'The tool could not complete. Check the arguments or try again.'};}input.push({type:'function_call_output',call_id:call.call_id,output:JSON.stringify(result)});}
+  }catch(error){result={error:error.status?error.message:'The tool could not complete. Check the arguments or try again.'};}if(result?.error)onStep('','', 'unavailable');input.push({type:'function_call_output',call_id:call.call_id,output:JSON.stringify(result)});}
  }
  throw new Error('Beedy could not finish within the action limit. Try one request at a time.');
 }
@@ -89,7 +96,22 @@ export async function handleAgent(request,env){
  if(!env.OPENAI_API_KEY)return json({code:'connection_required',error:'Beedy’s AI connection is not configured yet. The workspace owner can enable it securely.'},503);
  const now=Date.now();for(const [key,v] of rates)if(v.until<now)rates.delete(key);let rate=rates.get(user);if(!rate){rate={until:now+60000,count:0};rates.set(user,rate);}if(++rate.count>12)return json({error:'Please wait a minute before asking Beedy again.'},429);
  if(!request.headers.get('content-type')?.includes('application/json'))return json({error:'JSON is required.'},415);
- try{if(Number(request.headers.get('content-length')||0)>1000000)return json({error:'Request too large'},413);const reader=request.body?.getReader();if(!reader)return json({error:'Missing message'},400);const chunks=[];let size=0;while(true){const {value,done}=await reader.read();if(done)break;size+=value.length;if(size>1000000){await reader.cancel();return json({error:'Request too large'},413);}chunks.push(value);}const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}let payload;try{payload=JSON.parse(new TextDecoder().decode(bytes));validatePayload(payload);if(payload.applicationRequest)validateApplicationRequest(payload.applicationRequest);if(payload.applicationCompletion)validateCompletion(payload.applicationCompletion);}catch(error){return json({error:error.message||'Invalid request'},400);}const profile=await knowledgeProfile(env,identity,payload.applicationCompletion?.projectId||payload.applicationRequest?.projectId||payload.projectId);return json(payload.applicationCompletion?await completeApplication(payload.applicationCompletion,profile,env):payload.applicationRequest?await generateApplication(payload.applicationRequest,bindOrganisation(payload.workspace,profile),profile,env):await runAgent(payload,env,fetch,profile));}catch(error){return json({error:error.name==='TimeoutError'?'Beedy took too long to respond. Please try again.':error.message||'Beedy is unavailable.',code:'agent_error'},error.status||502);}
+ try{if(Number(request.headers.get('content-length')||0)>1000000)return json({error:'Request too large'},413);const reader=request.body?.getReader();if(!reader)return json({error:'Missing message'},400);const chunks=[];let size=0;while(true){const {value,done}=await reader.read();if(done)break;size+=value.length;if(size>1000000){await reader.cancel();return json({error:'Request too large'},413);}chunks.push(value);}const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}let payload;try{payload=JSON.parse(new TextDecoder().decode(bytes));validatePayload(payload);if(payload.applicationRequest)validateApplicationRequest(payload.applicationRequest);if(payload.applicationCompletion)validateCompletion(payload.applicationCompletion);}catch(error){return json({error:error.message||'Invalid request'},400);}const profile=await knowledgeProfile(env,identity,payload.applicationCompletion?.projectId||payload.applicationRequest?.projectId||payload.projectId);const perform=onStep=>payload.applicationCompletion?completeApplication(payload.applicationCompletion,profile,env):payload.applicationRequest?generateApplication(payload.applicationRequest,bindOrganisation(payload.workspace,profile),profile,env,fetch,onStep):runAgent(payload,env,fetch,profile,onStep);
+ if(!request.headers.get('accept')?.includes('application/x-ndjson'))return json(await perform());
+ const encoder=new TextEncoder();
+ let closed=false;
+ const stream=new ReadableStream({
+  async start(controller){
+   const send=event=>{if(!closed)controller.enqueue(encoder.encode(JSON.stringify(event)+'\n'));};
+   try{
+    const result=await perform((label,detail='',state='active')=>send({type:'step',label,detail,state}));
+    send({type:'result',result});
+   }catch(error){send({type:'error',message:error.name==='TimeoutError'?'Beedy took too long. Please try again.':error.message||'Beedy could not finish.'});}
+   finally{if(!closed)controller.close();}
+  },
+  cancel(){closed=true;}
+ });
+ return new Response(stream,{headers:{...headers,'Content-Type':'application/x-ndjson; charset=utf-8'}});}catch(error){return json({error:error.name==='TimeoutError'?'Beedy took too long to respond. Please try again.':error.message||'Beedy is unavailable.',code:'agent_error'},error.status||502);}
 }
 
 export async function prepareApplicationAction(args,workspace,actions,fetcher=fetch){

@@ -138,3 +138,24 @@ body.chat-expanded{--chat-width:620px}
 .chat-grant-row strong, .chat-grant-row small { display: block; line-height: 1.4; }
 .chat-grant-row small { margin-top: .25rem; color: #52634c; }
 .chat-grant-row:hover, .chat-grant-row:focus-visible { background: #eff6ea; }
+
+.run-card{margin:12px 0 18px;padding:0 16px;border:1px solid #dedede;border-radius:9px;background:#fff;color:#191919;min-width:0}
+.run-card summary{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:13px 0;font:600 13px var(--sans);cursor:pointer;list-style:none}
+.run-card summary::-webkit-details-marker{display:none}
+.run-card summary span::after{content:'⌄';display:inline-block;margin-left:7px;color:#777;transform:rotate(-90deg)}
+.run-card[open] summary span::after{transform:none}
+.run-card summary small,.run-step small{color:#646464;font-weight:400}
+.run-content{padding-bottom:15px}
+.run-content h3{font:500 15px/1.4 var(--sans);margin:2px 0 16px;overflow-wrap:anywhere}
+.run-content ol{margin:0;padding:0;list-style:none}
+.run-step{display:grid;position:relative;grid-template-columns:18px 1fr;gap:10px;align-items:start;padding-bottom:15px}
+.run-step:not(:last-child)::before{content:'';position:absolute;top:19px;bottom:2px;left:8px;width:1px;background:#ddd}
+.run-marker{display:grid;place-items:center;width:17px;height:17px;border-radius:100%;font:600 10px var(--sans);border:1px solid #ccc;color:#333;background:#fafafa}
+.run-step.is-active .run-marker{border:2px solid #ddd;border-top-color:#151515;animation:beedy-run-spin .9s linear infinite}
+.run-step strong{display:block;font:500 13px/1.45 var(--sans)}
+.run-step small{display:block;font:400 12px/1.45 var(--sans);margin-top:3px;overflow-wrap:anywhere}
+.run-output{display:flex;align-items:center;gap:8px;border-top:1px solid #e3e3e3;padding-top:12px;color:#191919;text-decoration:none;font:500 13px/1.45 var(--sans);overflow-wrap:anywhere}
+.run-output .icon{width:16px;height:16px;flex:none}.run-output .icon:last-child{margin-left:auto}
+.run-card [role=alert]{font-size:13px}.run-card:not([open]){margin-bottom:12px}
+@keyframes beedy-run-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.run-step.is-active .run-marker{animation:none}}
