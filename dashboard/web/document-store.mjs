@@ -1,5 +1,5 @@
 import {cloudAccount,cloudRequest,cloudRead,cloudWrite,encodeCloud,decodeCloud,cloudNotice} from './cloud-client.mjs';
-import {currentBriefLabels} from './lantern-brief.mjs';
+import {isRetiredStarter} from './lantern-brief.mjs';
 let database;
 function openDatabase(){if(!database)database=new Promise((resolve,reject)=>{const request=indexedDB.open('centring-lantern-documents-v1',1);request.onupgradeneeded=()=>request.result.createObjectStore('files',{keyPath:'id'});request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(new Error('Document storage is unavailable in this browser.'));});return database;}
 async function transact(mode,operation){const db=await openDatabase();return new Promise((resolve,reject)=>{const tx=db.transaction('files',mode),request=operation(tx.objectStore('files'));let result;request.onsuccess=()=>{result=request.result};tx.oncomplete=()=>resolve(result);tx.onerror=()=>reject(new Error('Could not save this document. Browser storage may be full.'));tx.onabort=()=>reject(new Error('Document changes were not saved.'));});}
@@ -7,12 +7,12 @@ export const localDocuments=()=>transact('readonly',store=>store.getAll());
 const cacheDocument=doc=>transact('readwrite',store=>store.put(doc));
 export const getDocument=id=>transact('readonly',store=>store.get(id));
 export async function allDocuments(){
- const local=await localDocuments(),owner=cloudAccount();if(!owner)return Promise.all(local.filter(d=>!d._cloudOwner).map(currentBriefLabels));
+ const local=await localDocuments(),owner=cloudAccount();if(!owner)return local.filter(d=>!d._cloudOwner&&!isRetiredStarter(d));
  const rows=(await (await cloudRequest('records/document')).json()).records,byId=new Map(local.filter(d=>d._cloudOwner===owner).map(d=>[d.id,d]));
  for(const row of rows){const cached=byId.get(row.record_id);if(cached?._cloudPending)continue;if(row.deleted){byId.delete(row.record_id);if(cached)await transact('readwrite',s=>s.delete(row.record_id));continue;}if(cached?._cloudRevision===row.revision)continue;
   const record=await cloudRead('document',row.record_id);const doc={...await decodeCloud(record.data),_cloudOwner:owner,_cloudRevision:record.revision};await cacheDocument(doc);byId.set(doc.id,doc);
  }
- const docs=[...byId.values()];if(docs.some(d=>d._cloudPending))cloudNotice('Some documents have local changes to sync');return Promise.all(docs.map(currentBriefLabels));
+ const docs=[...byId.values()];if(docs.some(d=>d._cloudPending))cloudNotice('Some documents have local changes to sync');return docs.filter(d=>!isRetiredStarter(d));
 }
 // A second browser opening the walkthrough must never overwrite the first team's edits.
 export async function createSampleIfMissing(doc){

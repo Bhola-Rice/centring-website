@@ -17,7 +17,7 @@ test('task progress is based on completed checklist items',()=>{const api=worksp
 test('calendar distinguishes expected funding from received funds',()=>{const api=workspace();let e=api.events().find(e=>e.id==='spaces'&&e.type==='funding');assert.equal(e.date,'2026-11-20');assert.equal(e.done,false);Object.assign(api.state.applications.spaces,{status:'received',receivedDate:'2026-11-09'});e=api.events().find(e=>e.id==='spaces'&&e.type==='funding');assert.equal(e.date,'2026-11-09');assert.equal(e.done,true);assert.ok(e.title.startsWith('Received:'))});
 test('award setup creates named owners and does not duplicate tasks',()=>{const api=workspace(),a=api.state.applications.heritage;a.fundingDate='2026-12-01';api.createAwardTasks('heritage',a);api.createAwardTasks('heritage',a);const tasks=api.state.tasks.filter(t=>t.related==='heritage'&&t.awardSetup);assert.equal(tasks.length,2);assert.equal(tasks[0].owner,'alex');assert.equal(tasks[1].owner,'jordan');assert.equal(tasks[1].date,'2026-12-08')});
 test('upgrade preserves existing user edits and is idempotent',()=>{const api=workspace();const old=api.defaults();old.tasks[0].done=true;old.name='Demo Reviewer';old.applications.creative={title:'My edited project',description:'Keep this',amount:11000,status:'draft'};const upgraded=workspace(old);assert.equal(upgraded.state.applications.creative.title,'My edited project');assert.equal(upgraded.state.tasks[0].done,true);assert.equal(upgraded.state.name,'Demo Reviewer');const count=upgraded.state.tasks.length;upgraded.migrateDemo();assert.equal(upgraded.state.tasks.length,count)});
-test('timeline uses actual receipt date after funds land',()=>{const api=workspace();Object.assign(api.state.applications.spaces,{status:'received',receivedDate:api.pacificDate()});const html=api.timelinePage();assert.ok(!html.includes('Expected funding for Welcoming Spaces'));assert.ok(html.includes('A More Welcoming Studio')===false);assert.ok(html.includes('Welcoming Spaces'))});
+test('timeline uses actual receipt date after funds land',()=>{const api=workspace();Object.assign(api.state.applications.spaces,{status:'received',receivedDate:api.pacificDate()});const html=api.timelinePage();assert.ok(!html.includes('Expected funding for Welcoming Spaces'));assert.ok(html.includes('A More Welcoming Studio')===false);assert.ok(html.includes('Youth transition support'))});
 
 test('reviewed agent change applies once and can be undone',()=>{const api=workspace(),t=api.state.tasks.find(t=>t.id==='budget');const p={id:'proposal-1',before:api.fingerprint(t),change:{kind:'task_update',id:t.id,patch:{owner:'sarah'}}};api.applyAgentProposal(p);assert.equal(t.owner,'sarah');assert.equal(p.applied,true);api.applyAgentProposal(p);assert.equal(api.state.appliedChanges.filter(id=>id===p.id).length,1);api.undoAgentProposal(p);assert.equal(api.state.tasks.find(t=>t.id==='budget').owner,'alex');assert.equal(p.undone,true);});
 test('stale proposals and undo never overwrite newer changes',()=>{const api=workspace(),t=api.state.tasks.find(t=>t.id==='budget');const p={id:'proposal-2',before:api.fingerprint(t),change:{kind:'task_update',id:t.id,patch:{owner:'sarah'}}};t.notes='Newer work';api.applyAgentProposal(p);assert.equal(t.owner,'alex');assert.equal(p.applied,undefined);p.before=api.fingerprint(t);api.applyAgentProposal(p);t.notes='Changed again';api.undoAgentProposal(p);assert.equal(t.notes,'Changed again');assert.equal(t.owner,'sarah');assert.equal(p.applied,true);});
@@ -85,7 +85,7 @@ test('Today selection and calendar marker use current Pacific date',()=>{
 });
 test('day preview shows complete titles, owners, completion and safe empty state',()=>{
  const api=workspace();api.state.tasks=[{id:'x',title:'<script>Keep the full grant title</script>',owner:'alex',date:'2026-11-11',type:'task',done:true,status:'done'}];
- const html=api.dayPreviewHTML('2026-11-11');assert.ok(html.includes('&lt;script&gt;Keep the full grant title&lt;/script&gt;'));assert.ok(!html.includes('<script>'));assert.ok(html.includes('Alex Rivera'));assert.ok(html.includes('Completed'));assert.ok(api.dayPreviewHTML('2099-01-01').includes('No events scheduled'));
+ const html=api.dayPreviewHTML('2026-11-11');assert.ok(html.includes('&lt;script&gt;Keep the full grant title&lt;/script&gt;'));assert.ok(!html.includes('<script>'));assert.ok(html.includes('Finance team'));assert.ok(html.includes('Completed'));assert.ok(api.dayPreviewHTML('2099-01-01').includes('No events scheduled'));
 });
 
 test('new workspaces have upcoming sample milestones across a year boundary',()=>{
@@ -101,4 +101,20 @@ test('new workspaces have upcoming sample milestones across a year boundary',()=
  assert.equal(saved.events().find(e=>e.id==='report').done,false);
  saved.state.report.sentOn='2027-01-02';
  assert.equal(saved.events().find(e=>e.id==='report').done,true);
+});
+
+test('existing workspace adopts Upbring starter content without losing edits or completion',()=>{
+ const old=workspace().state;
+ old.name='My reviewer';
+ old.applications.creative.title='Edited project name';
+ old.applications.heritage.title='Neighbourhood Stories';
+ old.tasks.find(task=>task.id==='budget').title='Check the workshop budget';
+ old.tasks.find(task=>task.id==='budget').done=true;
+ const saved=workspace(old).state;
+ assert.equal(saved.name,'My reviewer');
+ assert.equal(saved.applications.creative.title,'Edited project name');
+ assert.equal(saved.applications.heritage.title,'Head Start Family Engagement');
+ assert.equal(saved.tasks.find(task=>task.id==='budget').title,'Review caregiver navigation costs');
+ assert.equal(saved.tasks.find(task=>task.id==='budget').done,true);
+ assert.deepEqual(JSON.parse(JSON.stringify(workspace(saved).state)),JSON.parse(JSON.stringify(saved)));
 });
