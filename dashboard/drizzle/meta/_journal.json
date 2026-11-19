@@ -15,6 +15,20 @@
       "when": 1794805300657,
       "tag": "0001_hard_rhodey",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1795075441033,
+      "tag": "0002_funding_library",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1795076354362,
+      "tag": "0003_funding_excerpts",
+      "breakpoints": true
     }
   ]
 }

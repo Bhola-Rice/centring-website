@@ -1,8 +1,8 @@
 @font-face{font-family:Sentient;src:url('/assets/Sentient-Regular.otf');font-display:swap}
-@font-face{font-family:Instrument;src:url('/assets/instrument-sans.ttf');font-weight:100 900;font-display:swap}
+
 *{box-sizing:border-box}
 html{min-height:100%;background:#151b15}
-body{margin:0;min-height:100svh;display:flex;flex-direction:column;isolation:isolate;color:#243024;font-family:Instrument,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+body{margin:0;min-height:100svh;display:flex;flex-direction:column;isolation:isolate;color:#243024;font-family:Arial,Helvetica,sans-serif;-webkit-font-smoothing:antialiased}
 .landscape{position:fixed;inset:0;overflow:hidden;z-index:-2;background:#151b15;pointer-events:none}
 .landscape img{width:100%;height:100%;object-fit:cover;object-position:center;transform:scale(1.18)}
 .landscape:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(9,17,10,.37),rgba(9,17,10,.08) 35%,rgba(9,17,10,.22) 75%,rgba(9,17,10,.54))}
@@ -12,11 +12,11 @@ main{flex:1;display:flex;align-items:center;justify-content:center;padding:38px 
 .signin-card{width:420px;max-width:100%;padding:42px 38px 28px;border:1px solid rgba(255,255,255,.78);border-radius:18px;background:rgba(249,250,245,.94);box-shadow:0 24px 80px rgba(4,12,6,.24),inset 0 1px 0 #fff;backdrop-filter:blur(22px) saturate(110%);-webkit-backdrop-filter:blur(22px) saturate(110%)}
 .card-intro{text-align:center;margin-bottom:32px}.card-intro h1{font:34px/1.2 Sentient,Georgia,serif;letter-spacing:-.9px;margin:0 0 10px}.card-intro p{font-size:14px;line-height:1.5;color:#626a5d;margin:0}
 label{display:block;font-size:12px;font-weight:600;margin:21px 0 9px;color:#394335}
-input{display:block;width:100%;height:49px;border:1px solid #cfd5c9;border-radius:7px;padding:0 14px;font:14px Instrument,Arial,sans-serif;color:#243024;background:rgba(255,255,255,.78);transition:border-color .15s,box-shadow .15s}input::placeholder{color:#82887c}input:focus{border-color:#6a874e;box-shadow:0 0 0 3px #d9e5ce}
+input{display:block;width:100%;height:49px;border:1px solid #cfd5c9;border-radius:7px;padding:0 14px;font:14px Arial,Helvetica,sans-serif;color:#243024;background:rgba(255,255,255,.78);transition:border-color .15s,box-shadow .15s}input::placeholder{color:#82887c}input:focus{border-color:#6a874e;box-shadow:0 0 0 3px #d9e5ce}
 input:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid #74a34a;outline-offset:3px}
 input:-webkit-autofill{-webkit-box-shadow:0 0 0 1000px #f2f5eb inset;-webkit-text-fill-color:#243024;caret-color:#243024}
-.password-field{position:relative}.password-field input{padding-right:66px}.password-field button{position:absolute;right:6px;top:3px;height:43px;min-width:52px;border:0;border-radius:5px;background:transparent;color:#59634f;font:12px Instrument,Arial,sans-serif;cursor:pointer}.password-field button:hover{background:#edf1e6}
-.submit{width:100%;height:48px;display:flex;align-items:center;justify-content:center;gap:13px;border:1px solid #283d24;border-radius:7px;background:#263c25;color:#fff;font:500 14px Instrument,Arial,sans-serif;margin-top:28px;cursor:pointer;box-shadow:inset 0 1px 0 #ffffff16;transition:background .15s,box-shadow .15s}.submit span{font-size:21px;line-height:1;color:#8ee53f}.submit:hover{background:#344d2e;box-shadow:0 3px 12px #263c2520}.submit:disabled{opacity:.65;cursor:wait}
+.password-field{position:relative}.password-field input{padding-right:66px}.password-field button{position:absolute;right:6px;top:3px;height:43px;min-width:52px;border:0;border-radius:5px;background:transparent;color:#59634f;font:12px Arial,Helvetica,sans-serif;cursor:pointer}.password-field button:hover{background:#edf1e6}
+.submit{width:100%;height:48px;display:flex;align-items:center;justify-content:center;gap:13px;border:1px solid #283d24;border-radius:7px;background:#263c25;color:#fff;font:500 14px Arial,Helvetica,sans-serif;margin-top:28px;cursor:pointer;box-shadow:inset 0 1px 0 #ffffff16;transition:background .15s,box-shadow .15s}.submit span{font-size:21px;line-height:1;color:#8ee53f}.submit:hover{background:#344d2e;box-shadow:0 3px 12px #263c2520}.submit:disabled{opacity:.65;cursor:wait}
 .session-note{font-size:11px;line-height:1.6;text-align:center;color:#737b6c;margin:24px 0 0;padding-top:20px;border-top:1px solid #dce1d5}
 #signin-error{font-size:13px;line-height:1.5;color:#8c3526;background:#fff1ed;padding:11px 12px;border:1px solid #eed6cd;border-radius:7px;margin:16px 0 0}
 footer{display:flex;align-items:center;justify-content:center;gap:13px;padding:0 24px 26px;color:#ecefe3;font-size:11px;letter-spacing:.1px;text-shadow:0 1px 6px #0005}.footer-divider{height:10px;width:1px;background:#e9ecdb70}
@@ -25,3 +25,5 @@ footer{display:flex;align-items:center;justify-content:center;gap:13px;padding:0
 @media(max-height:620px){header{padding-top:24px}main{padding-top:20px;padding-bottom:28px}.signin-card{padding-top:28px}.card-intro{margin-bottom:22px}}
 @media(prefers-reduced-transparency:reduce){.signin-card{background:#f9faf5;backdrop-filter:none;-webkit-backdrop-filter:none}}
 @media(forced-colors:active){.landscape{display:none}.signin-card{border:1px solid CanvasText}.brand,footer{color:CanvasText}.submit{border:1px solid ButtonText}}
+
+body .signin-card{background:var(--paper);border:1px solid var(--line);border-radius:10px;backdrop-filter:none}body .submit span{color:var(--ink)}body input{border-radius:4px}

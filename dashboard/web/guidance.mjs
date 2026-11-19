@@ -8,8 +8,8 @@ const levels = {
 const guides = {
   today: ['Start with your team’s work', 'Check the next deadline, then open the task to see who owns it.', 'View team tasks', 'tasks'],
   opportunities: ['Find a grant to review', 'Search by the work you want to fund. Open a notice and check who can apply before starting a draft.', 'Open documents', 'library'],
-  applications: ['Review an application', 'Open an application to review its owner, preparation checklist and follow-up dates.', 'Check the calendar', 'calendar'],
-  library: ['Choose a source document', 'Open the example brief to see the project, budget and outcomes Beedy can use in a grant draft.', 'View opportunities', 'opportunities'],
+  applications: ['Review an application', 'Review the answers in a draft and record its progress with the funder.', 'Check the calendar', 'calendar'],
+  library: ['Choose a source document', 'Keep programme briefs, budgets and evaluations here. Choose a supporting file when preparing a grant.', 'View opportunities', 'opportunities'],
   studio: ['Review the draft', 'Compare each answer with its source. Add missing details and approve the wording you want to keep.', 'Back to documents', 'library'],
   reports: ['Record an award outcome', 'Check what the team delivered and spent. Record when the report was sent to the funder.', 'View applications', 'applications'],
   tasks: ['Coordinate a deadline', 'Open a task to check its owner, due date and remaining steps.', 'View calendar', 'calendar'],
@@ -30,11 +30,12 @@ function save(preference) {
 }
 export function guidanceSettings() {
   const {level = 'off'} = preferences();
-  return `<section class="guidance-settings"><h2>Guidance</h2><label class="field">Page guidance on this browser<select data-guidance-setting><option value="off">Off</option>${Object.entries(levels).map(([key,[label]]) => `<option value="${key}" ${key === level ? 'selected' : ''}>${label}</option>`).join('')}</select></label><p>Interrupted drafts can be restarted from the opportunity. Automatic continuation within a spending limit is unavailable in this preview.</p><button type="button" class="textlink" data-guidance-practice>Open practice space</button><span role="status" data-guidance-saved></span></section>`;
+  return `<section class="settings-guidance"><h2>Page guidance</h2><label class="settings-setting"><span>Guidance level<small>Applies to this browser</small></span><select data-guidance-setting><option value="off">Off</option>${Object.entries(levels).map(([key,[label]]) => `<option value="${key}" ${key === level ? 'selected' : ''}>${label}</option>`).join('')}</select></label><span role="status" data-guidance-saved></span><button type="button" class="settings-setting" data-guidance-practice><span>Open practice space</span><span aria-hidden="true">›</span></button></section>`;
 }
 let orient = false;
 export function guidancePanel(route) {
   const pref = preferences();
+  if (!pref.answered && route!=='help') return '';
   if (!pref.answered) return `<section class="guidance-welcome" aria-labelledby="guidance-title"><div><h2 id="guidance-title">How much guidance would you like?</h2><button type="button" class="textlink" data-guidance-level="off">Not now</button></div><div class="guidance-options">${Object.entries(levels).map(([key,[name,desc]]) => `<button type="button" data-guidance-level="${key}"><strong>${name}</strong><span>${desc}</span></button>`).join('')}</div></section>`;
   const guide = guides[route.split('/')[0]];
   if (!guide || !levels[pref.level] || (pref.level === 'expert' && !orient)) return '';
@@ -71,7 +72,7 @@ export function installGuidance({route, showDialog, closeDialog, openChat}) {
       const select = document.querySelector('[data-guidance-setting]'); if (select) select.value = level;
     } else if (target.hasAttribute('data-guidance-dismiss')) { orient = false; redraw(); }
     else if (target.hasAttribute('data-guidance-practice')) {
-      showDialog('<h2 id="dialog-title">Practice space</h2>', '<div class="guidance-practice"><p>Lantern Row Heritage Commons · Fictional application</p><h3>Open Studio Saturdays</h3><label class="field">How will your programme serve local families?<textarea rows="5">Lantern Row will offer six Saturday art workshops where young people and caregivers can work with local artists at no charge.</textarea></label><p>Edit this example, then review it. Practice uses no AI credits and closes without saving to your workspace.</p><button class="btn primary" data-guidance-check>Review practice answer</button><p role="status" data-practice-result></p></div>');
+      showDialog('<h2 id="dialog-title">Practice space</h2>', '<div class="guidance-practice"><p>Lantern Row Heritage Commons · Grant application</p><h3>Open Studio Saturdays</h3><label class="field">How will your programme serve local families?<textarea rows="5">Lantern Row will offer six Saturday art workshops where young people and caregivers can work with local artists at no charge.</textarea></label><p>Edit this example, then review it. Practice uses no AI credits and closes without saving to your workspace.</p><button class="btn primary" data-guidance-check>Review practice answer</button><p role="status" data-practice-result></p></div>');
     } else if (target.hasAttribute('data-guidance-check')) {
       const panel = target.closest('.guidance-practice');
       panel.querySelector('[data-practice-result]').textContent = panel.querySelector('textarea').value.trim() ? 'Review who will take part, what they will do and how you will measure the result.' : 'Write a practice answer first.';

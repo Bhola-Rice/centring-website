@@ -12,9 +12,9 @@ GitHub displays source code, not the running application. The dashboard's UI, AP
 
 Use the existing workspace login at the application URL. Team members using that same login share documents, applications, tasks, saved opportunities, reports, discussions, and organisation details. Individual member accounts, invites, role permissions and concurrent document co-editing are not yet available.
 
-Within the same workspace, a browser with unsynced fictional work can open the cloud status in the header and select **Upload this device's work** once. This preserves existing shared records and adds missing local records. If a document ID already exists, it uploads a separate local copy. Keep the original browser data until the status confirms cloud saving. A browser on a different machine cannot automatically retrieve another machine's unuploaded files.
+Within the same workspace, a browser with unsynced work can open the cloud status in the header and select **Upload this device's work** once. This preserves existing shared records and adds missing local records. If a document ID already exists, it uploads a separate local copy. Keep the original browser data until the status confirms cloud saving. A browser on a different machine cannot automatically retrieve another machine's unuploaded files.
 
-The Upbring walkthrough uses a separate Lantern Row storage scope for the shared preview account, including document originals, workspace records, remembered answers, local documents and chat. Its starting brief is fictional. Previous workspaces are retained outside this walkthrough. Use only fictional files while presenting.
+Every authenticated visitor starts with Upbring’s public organisation profile. People using the same demo sign-in share its saved records, files, branding, and confirmed project details. Separate accounts retain their own private records. The shared login keeps its existing storage identifier across releases.
 
 Click **Sync and refresh** when the header says team updates are available. Independent workspace edits can merge; same-field conflicts keep the local work for review. Document conflicts offer **Save local edits as copies**. Original file bytes are preserved.
 
@@ -34,7 +34,7 @@ Storage routes require authentication and isolate keys by account. The current s
 
 ## Backups and recovery
 
-The header's **Download backup** exports this browser's loaded documents (including original bytes), workspace state, and retained pre-migration state as JSON. Refresh first to include team updates. This export is private customer data: store it securely, never commit it. It does not include provider secrets or the separate D1 knowledge table. There is no in-app backup import yet; retain exports for administrator-assisted recovery.
+The header's **Download backup** exports this browser's loaded documents (including original bytes), workspace state, and retained pre-migration state as JSON. Refresh first to include team updates. This export is private customer data: store it securely, never commit it. The backup includes the public organisation profile and the current saved organisation and project answers from D1. Provider secrets are excluded. There is no in-app backup import yet; retain exports for administrator-assisted recovery.
 
 Every cloud record write stores an immutable R2 JSON version. A D1 pointer selects the current version; deletion creates a tombstone without purging prior objects. An administrator with storage access can locate the account's `versions/{kind}/{recordId}/` objects, inspect the correct version, and restore it through an authenticated version-checked record PUT. Blob references resolve under that same account's `files/` prefix. Do not manually change an owner prefix. Recovery should be tested on a separate workspace before altering live records.
 
@@ -61,3 +61,9 @@ Use Node.js 24+. Development data goes in ignored `.sites-runtime/` and never re
 6. Record the GitHub commit, Sites source commit/version and prior working version in release notes. Verify sign-in, document save/reload, workspace save, and account isolation.
 
 GitHub collaborators need repository write permission to contribute. Production publishing access is separate. A clone includes everything needed to build the code, but intentionally excludes live private documents, database contents, credentials, node_modules and generated dist. The repository is public.
+
+## Funding catalogue
+
+The catalogue uses authenticated reads from D1. Load public Pharos and Arachne listing fields separately from the code release. An operator with the hosting secret `FUNDING_IMPORT_KEY` can POST JSON arrays of up to 400 normalised rows (90 KB maximum) to `/api/funding/import` with bearer authentication. Use the nine columns produced by `scripts/import-funding.py`. Batches upsert by source-prefixed ID and can be retried. Calendar entries, workspace records and files are outside this import. Keep the key in private hosting configuration and exclude it from clients and source control.
+
+Run `python3 scripts/publish-funding.py /path/to/knowledge.sqlite` after enabling the import secret on the dashboard. The command prompts for the secret, checks hosted counts and reports accepted rows. Remove the temporary secret and redeploy after verification.
