@@ -1,3 +1,4 @@
+import {fromRetiredWorkspace} from '../web/workspace-origin.mjs';
 import {beedyIdentity} from './auth.mjs';
 import {organisationForIdentity} from './organisation.mjs';
 export function knowledgeOwner(identity){if(!identity)throw new Error('Sign in to save your profile.');if(identity.id.startsWith('demo:')&&identity.name==='BeedyRootKiwi')return 'preview:lantern-row:v1';return identity.id.startsWith('demo:')?'account:'+identity.name:'user:'+identity.id;}
@@ -7,10 +8,25 @@ export function validateKnowledge(data){
  const factsSeen=new Set();const facts=data.facts.map(f=>{if(!f||typeof f.id!=='string'||!/^[a-zA-Z0-9-]{1,80}$/.test(f.id)||factsSeen.has(f.id)||!['organisation','project'].includes(f.scope)||typeof f.question!=='string'||!f.question.trim()||f.question.length>1500||typeof f.answer!=='string'||!f.answer.trim()||f.answer.length>6000||(f.scope==='project'&&!ids.has(f.projectId)))throw new Error('Check each saved question, answer, and project.');factsSeen.add(f.id);return {id:f.id,scope:f.scope,projectId:f.scope==='project'?f.projectId:null,question:f.question.trim(),answer:f.answer.trim()};});
  return {projects,facts};
 }
-export async function readKnowledge(env,identity){if(!env.DB)throw Object.assign(new Error('Profile storage is unavailable. Your answers have not been saved.'),{status:503});const row=await env.DB.prepare('SELECT revision, data FROM nonprofit_knowledge WHERE owner = ?').bind(knowledgeOwner(identity)).first();return row?{...JSON.parse(row.data),revision:row.revision}:{revision:0,facts:[],projects:[{id:'family-navigation-pilot',name:'Family Navigation Pilot'}]};}
+async function storedKnowledge(env,identity){if(!env.DB)throw Object.assign(new Error('Profile storage is unavailable. Your answers have not been saved.'),{status:503});const row=await env.DB.prepare('SELECT revision, data FROM nonprofit_knowledge WHERE owner = ?').bind(knowledgeOwner(identity)).first();return row?{...JSON.parse(row.data),revision:row.revision}:{revision:0,facts:[],projects:[{id:'family-navigation-pilot',name:'Family Navigation Pilot'}]};}
+function partitionKnowledge(stored){
+ const projects=stored.projects.filter(p=>!fromRetiredWorkspace(p));
+ const projectIds=new Set(projects.map(p=>p.id));
+ const facts=stored.facts.filter(f=>!fromRetiredWorkspace(f)&&(f.scope!=='project'||projectIds.has(f.projectId)));
+ return {revision:stored.revision,projects,facts};
+}
+export async function readKnowledge(env,identity){
+ return partitionKnowledge(await storedKnowledge(env,identity));
+}
 export async function writeKnowledge(env,identity,input){
  if(!Number.isInteger(input.revision)||input.revision<0)throw new Error('Reload your saved profile and try again.');const data=validateKnowledge(input),owner=knowledgeOwner(identity),revision=input.revision+1;
- const result=input.revision===0?await env.DB.prepare('INSERT OR IGNORE INTO nonprofit_knowledge (owner, revision, data, updated_at) VALUES (?, ?, ?, ?)').bind(owner,revision,JSON.stringify(data),new Date().toISOString()).run():await env.DB.prepare('UPDATE nonprofit_knowledge SET revision = ?, data = ?, updated_at = ? WHERE owner = ? AND revision = ?').bind(revision,JSON.stringify(data),new Date().toISOString(),owner,input.revision).run();
+ if(fromRetiredWorkspace(data))throw new Error('Choose details from the Upbring workspace.');
+ const stored=await storedKnowledge(env,identity),visible=partitionKnowledge(stored);
+ const archive=stored.retiredRecords||{projects:[],facts:[]};
+ archive.projects.push(...stored.projects.filter(p=>!visible.projects.includes(p)));
+ archive.facts.push(...stored.facts.filter(f=>!visible.facts.includes(f)));
+ const snapshot=archive.projects.length||archive.facts.length?{...data,retiredRecords:archive}:data;
+ const result=input.revision===0?await env.DB.prepare('INSERT OR IGNORE INTO nonprofit_knowledge (owner, revision, data, updated_at) VALUES (?, ?, ?, ?)').bind(owner,revision,JSON.stringify(snapshot),new Date().toISOString()).run():await env.DB.prepare('UPDATE nonprofit_knowledge SET revision = ?, data = ?, updated_at = ? WHERE owner = ? AND revision = ?').bind(revision,JSON.stringify(snapshot),new Date().toISOString(),owner,input.revision).run();
  if(!result.meta?.changes)throw Object.assign(new Error('Someone updated this profile. Reload the saved details before saving again.'),{status:409});return {...data,revision};
 }
 export async function knowledgeProfile(env,identity,projectId){const base=organisationForIdentity(identity);if(!env.DB)return base;const k=await readKnowledge(env,identity);if(projectId&&!k.projects.some(p=>p.id===projectId))throw new Error('Choose a saved project from this account.');const confirmedDetails=k.facts.filter(f=>f.scope==='organisation'||f.projectId===projectId).map(({question,answer,scope})=>({question,answer,scope,source:'Confirmed by account user'}));if(!base)return confirmedDetails.length?{name:'Your nonprofit',confirmedDetails,selectedProject:k.projects.find(p=>p.id===projectId)||null}:null;return {...base,confirmedDetails,selectedProject:k.projects.find(p=>p.id===projectId)||null};}

@@ -1,3 +1,4 @@
+import {activeChatTurns,fromRetiredWorkspace} from '../web/workspace-origin.mjs';
 import {assessOpportunity} from './opportunity-fit.mjs';
 import {knowledgeProfile} from './knowledge.mjs';
 import {completeApplication,validateCompletion} from './application-completion.mjs';
@@ -61,7 +62,11 @@ export async function prepareGrantImport(args,workspace,actions,fetcher=fetch){
 }
 function inputItems(output){return output.flatMap(item=>{if(item.type==='function_call')return [{type:'function_call',call_id:item.call_id,name:item.name,arguments:item.arguments}];if(item.type==='reasoning')return [{type:'reasoning',summary:item.summary||[],...(item.encrypted_content?{encrypted_content:item.encrypted_content}:{id:item.id})}];if(item.type==='message')return [{role:'assistant',content:(item.content||[]).filter(c=>c.type==='output_text').map(c=>c.text).join('\n')}];return [];});}
 export async function runAgent(payload,env,fetcher=fetch,organisationProfile=null,onStep=()=>{}){
- const validated=validatePayload(payload);const {message,context,history}=validated;const workspace=bindOrganisation(validated.workspace,organisationProfile);const proposals=[],documentEdits=[],grantActions=[],applicationActions=[];
+ const validated=validatePayload(payload);const {message}=validated;
+ const isUpbring=organisationProfile?.id==='upbring';
+ const history=isUpbring?activeChatTurns(validated.history):validated.history;
+ const context=isUpbring&&fromRetiredWorkspace(validated.context)?'Upbring workspace':validated.context;
+ const workspace=bindOrganisation(validated.workspace,organisationProfile);const proposals=[],documentEdits=[],grantActions=[],applicationActions=[];
  const matches=new Map();
  const input=[...history,{role:'user',content:JSON.stringify({message,current_view:context,selected_document:workspace.documents?.[0]?{id:workspace.documents[0].id,name:workspace.documents[0].name}:null,demo_date:workspace.demoDate,current_date:new Date().toLocaleDateString('en-CA',{timeZone:'America/Los_Angeles'}),time_zone:'America/Los_Angeles'})}];
  const activities={
@@ -102,7 +107,7 @@ export async function handleAgent(request,env){
   catch{return json({error:'Beedy couldn’t finish reviewing this notice.'},502);}
  }
  if(!request.headers.get('content-type')?.includes('application/json'))return json({error:'JSON is required.'},415);
- try{if(Number(request.headers.get('content-length')||0)>1000000)return json({error:'Request too large'},413);const reader=request.body?.getReader();if(!reader)return json({error:'Missing message'},400);const chunks=[];let size=0;while(true){const {value,done}=await reader.read();if(done)break;size+=value.length;if(size>1000000){await reader.cancel();return json({error:'Request too large'},413);}chunks.push(value);}const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}let payload;try{payload=JSON.parse(new TextDecoder().decode(bytes));validatePayload(payload);if(payload.applicationRequest)validateApplicationRequest(payload.applicationRequest);if(payload.applicationCompletion)validateCompletion(payload.applicationCompletion);}catch(error){return json({error:error.message||'Invalid request'},400);}const profile=await knowledgeProfile(env,identity,payload.applicationCompletion?.projectId||payload.applicationRequest?.projectId||payload.projectId);const perform=onStep=>payload.applicationCompletion?completeApplication(payload.applicationCompletion,profile,env):payload.applicationRequest?generateApplication(payload.applicationRequest,bindOrganisation(payload.workspace,profile),profile,env,fetch,onStep):runAgent(payload,env,fetch,profile,onStep);
+ try{if(Number(request.headers.get('content-length')||0)>1000000)return json({error:'Request too large'},413);const reader=request.body?.getReader();if(!reader)return json({error:'Missing message'},400);const chunks=[];let size=0;while(true){const {value,done}=await reader.read();if(done)break;size+=value.length;if(size>1000000){await reader.cancel();return json({error:'Request too large'},413);}chunks.push(value);}const bytes=new Uint8Array(size);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}let payload;try{payload=JSON.parse(new TextDecoder().decode(bytes));validatePayload(payload);if(payload.applicationRequest)validateApplicationRequest(payload.applicationRequest);if(payload.applicationCompletion)validateCompletion(payload.applicationCompletion);}catch(error){return json({error:error.message||'Invalid request'},400);}const profile=await knowledgeProfile(env,identity,payload.applicationCompletion?.projectId||payload.applicationRequest?.projectId||payload.projectId);if(profile?.id==='upbring' && fromRetiredWorkspace([payload.applicationRequest,payload.applicationCompletion]))return json({error:'Start a new draft from the opportunity to use the current Upbring profile.'},409);const perform=onStep=>payload.applicationCompletion?completeApplication(payload.applicationCompletion,profile,env):payload.applicationRequest?generateApplication(payload.applicationRequest,bindOrganisation(payload.workspace,profile),profile,env,fetch,onStep):runAgent(payload,env,fetch,profile,onStep);
  if(!request.headers.get('accept')?.includes('application/x-ndjson'))return json(await perform());
  const encoder=new TextEncoder();
  let closed=false;
