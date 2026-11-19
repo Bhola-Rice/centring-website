@@ -31,3 +31,13 @@ test('generated drafts retain source text and question provenance after saving a
  assert.equal(saved.sources.find(s=>s.id==='application').text,input.templateText);
  assert.match(citationPanel(saved.sources.find(s=>s.id==='application'),saved.sections[0].question_quote),/<mark>Describe your organisation\.<\/mark>/);
 });
+
+test('eligibility citations must match a named check and an actual funder passage',()=>{
+ const r=result();
+ const check=r.fit.eligibility_checks[0];
+ const cite={check,source_id:'application',quote:sources[0].text};
+ r.fit.citations=[cite,{...cite,check:'Unrelated check'},{...cite,quote:'Invented requirement'},{...cite,source_id:'organisation',quote:sources[1].text}];
+ const validated=validateApplicationResult(r,sources);
+ assert.deepEqual(validated.fit.citations,[cite]);
+ assert.match(applicationPanel({id:'draft',applicationDraft:validated}),/data-fit-citation="0"/);
+});
