@@ -35,3 +35,35 @@ export function renderChatMarkdown(value){
  }
  return html;
 }
+
+export function renderGrantResults(results = []) {
+ const rows = results.filter(g => /^\d{1,10}$/.test(g?.id) && g.name);
+ if (!rows.length) return '';
+ const row = g => {
+  const status = {posted: 'Posted', forecasted: 'Forecast', closed: 'Closed', archived: 'Archived'}[g.status];
+  const meta = [g.agency, status].filter(Boolean).map(escapeText).join(' · ');
+  return '<button type="button" class="chat-grant-row" data-action="federal-open" data-id="'+escapeText(g.id)+'"><span><strong>'+escapeText(g.name)+'</strong><small>'+meta+'</small></span><span aria-hidden="true">›</span></button>';
+ };
+ return '<section class="chat-grants" aria-label="Grant search results"><div class="chat-grants-label">Grants.gov opportunities</div>'+rows.slice(0,3).map(row).join('')+
+  (rows.length>3?'<details><summary>Show '+(rows.length-3)+' more</summary>'+rows.slice(3).map(row).join('')+'</details>':'')+'</section>';
+}
+
+// Recognize complete listing blocks saved by earlier dashboard versions.
+// Leave unfamiliar prose intact, including any analysis surrounding the listings.
+export function renderSavedGrantText(text) {
+ const pattern = /^[ \t]*(?:[-*]|\d+[.)])\s+([^\n]+)\n+\s*[-*]\s+ID:\s*(\d{1,10})\s*\n\s*[-*]\s+Agency:\s*([^\n]+)\n\s*[-*]\s+Status:\s*(\w+)\s*\n\s*[-*]\s+Official URL:\s*https:\/\/www\.grants\.gov\/search-results-detail\/\2(?=\s|$)/gm;
+ const matches = [...text.matchAll(pattern)];
+ if (!matches.length) return renderChatMarkdown(text);
+ let html = '', end = 0, group = [];
+ for (const match of matches) {
+  const between = text.slice(end, match.index);
+  if (between.trim()) {
+   html += renderGrantResults(group) + renderChatMarkdown(between);
+   group = [];
+  }
+  group.push({name:match[1].replace(/^\*\*(.*)\*\*$/, '$1'),id:match[2],agency:match[3],status:match[4].toLowerCase()});
+  end = match.index + match[0].length;
+ }
+ const rest = text.slice(end).replace(/Search metadata:\s*\n\s*[-*] Source: Grants\.gov\s*\n\s*[-*] Fetched at: \S+/i,'');
+ return html + renderGrantResults(group) + renderChatMarkdown(rest);
+}

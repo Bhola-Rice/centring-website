@@ -1,6 +1,6 @@
 import {cloudAccount,cloudRequest,cloudRead,cloudWrite,encodeCloud,decodeCloud,cloudNotice} from './cloud-client.mjs';
 let database;
-function openDatabase(){if(!database)database=new Promise((resolve,reject)=>{const request=indexedDB.open('centring-documents',1);request.onupgradeneeded=()=>request.result.createObjectStore('files',{keyPath:'id'});request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(new Error('Document storage is unavailable in this browser.'));});return database;}
+function openDatabase(){if(!database)database=new Promise((resolve,reject)=>{const request=indexedDB.open('centring-lantern-documents-v1',1);request.onupgradeneeded=()=>request.result.createObjectStore('files',{keyPath:'id'});request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(new Error('Document storage is unavailable in this browser.'));});return database;}
 async function transact(mode,operation){const db=await openDatabase();return new Promise((resolve,reject)=>{const tx=db.transaction('files',mode),request=operation(tx.objectStore('files'));let result;request.onsuccess=()=>{result=request.result};tx.oncomplete=()=>resolve(result);tx.onerror=()=>reject(new Error('Could not save this document. Browser storage may be full.'));tx.onabort=()=>reject(new Error('Document changes were not saved.'));});}
 export const localDocuments=()=>transact('readonly',store=>store.getAll());
 const cacheDocument=doc=>transact('readwrite',store=>store.put(doc));
@@ -12,6 +12,30 @@ export async function allDocuments(){
   const record=await cloudRead('document',row.record_id);const doc={...await decodeCloud(record.data),_cloudOwner:owner,_cloudRevision:record.revision};await cacheDocument(doc);byId.set(doc.id,doc);
  }
  const docs=[...byId.values()];if(docs.some(d=>d._cloudPending))cloudNotice('Some documents have local changes to sync');return docs;
+}
+// A second browser opening the walkthrough must never overwrite the first team's edits.
+export async function createSampleIfMissing(doc){
+ const owner=cloudAccount();
+ if(!owner){await transact('readwrite',store=>store.add(doc)).catch(async error=>{if(!await getDocument(doc.id))throw error;});return;}
+ try{await cloudWrite('document',doc.id,0,await encodeCloud(doc));}
+ catch(error){if(error.status!==409)throw error;}
+}
+
+// An old browser may still hold the previously displayed client upload.
+export async function removeRetiredClientBrief(){
+ if(!indexedDB.databases || !(await indexedDB.databases()).some(db=>db.name==='centring-documents'))return;
+ const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('centring-documents');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});
+ try{
+  if(!db.objectStoreNames.contains('files'))return;
+  await new Promise((resolve,reject)=>{
+   const tx=db.transaction('files','readwrite'),cursor=tx.objectStore('files').openCursor();
+   cursor.onsuccess=()=>{const row=cursor.result;if(!row)return;
+    if(/^final bell kar(?:a)?(?: \(local copy\))?\.docx$/i.test(String(row.value.name).trim()))row.delete();
+    row.continue();
+   };
+   tx.oncomplete=resolve;tx.onabort=()=>reject(tx.error);
+  });
+ }finally{db.close();}
 }
 export async function putDocument(doc){
  const owner=cloudAccount();if(!owner){await cacheDocument(doc);cloudNotice('Saved on this device; cloud is not connected');return doc.id;}

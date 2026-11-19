@@ -1,0 +1,6 @@
+.guidance-welcome,.guidance-guide,.guidance-settings,.guidance-help{padding:clamp(1rem,2vw,1.5rem);border:1px solid #dce5d7;background:#fcfdf9;border-radius:16px;margin:0 0 1.25rem;color:#263524}
+.guidance-welcome>div:first-child,.guidance-options{display:flex;gap:.75rem;align-items:baseline;justify-content:space-between}.guidance-welcome h2,.guidance-settings h2{font-size:1.28rem;margin:0 0 .8rem}
+.guidance-options{align-items:stretch}.guidance-options button{flex:1;text-align:left;padding:.85rem 1rem;border:1px solid #d4dfcd;border-radius:10px;background:white;color:inherit;font:inherit;cursor:pointer}.guidance-options button:hover{border-color:#588641}.guidance-options span{display:block;color:#52624e;font-size:.88rem;margin-top:.3rem}
+.guidance-guide summary,.guidance-help summary{cursor:pointer}.guidance-guide p,.guidance-settings p,.guidance-help p,.guidance-practice p{line-height:1.5}.guidance-guide .textlink,.guidance-help .textlink{margin-right:1rem}
+.guidance-settings{margin:1rem 0}.guidance-settings select{max-width:22rem}.guidance-settings [role=status]{margin-left:.75rem}.guidance-help{margin-top:1rem}.guidance-help details{margin:.6rem 0}
+@media(max-width:640px){.guidance-options{flex-direction:column}.guidance-welcome>div:first-child{align-items:start}.guidance-welcome .textlink{white-space:nowrap}}
