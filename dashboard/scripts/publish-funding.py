@@ -22,6 +22,7 @@ def request(key, data=None):
     opener = urllib.request.build_opener(DirectOnly())
     req = urllib.request.Request(ENDPOINT, data=data, headers={
         "Authorization": "Bearer " + key, "Content-Type": "application/json",
+        "User-Agent": "Centring-Catalogue/1.0 (+https://github.com/Bhola-Rice/centring-website)",
     })
     for attempt in range(5):
         try:
