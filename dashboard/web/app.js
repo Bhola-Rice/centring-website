@@ -1,4 +1,4 @@
-import {documentSheet,narrativeCopy,opportunityKey,recordProgress,heritageExample} from './application-record.mjs';
+import {applicationStage,preparingStage,documentSheet,narrativeCopy,opportunityKey,recordProgress,heritageExample} from './application-record.mjs';
 import {createFundingLibrary} from './funding-library.mjs';
 import {showOriginal} from './citation-document.mjs';
 import {guidancePanel,guidanceSettings,installGuidance,proactiveHelp} from './guidance.mjs';
@@ -184,7 +184,7 @@ function editTaskDialog(id){
 document.addEventListener('click',event=>{
  const filter=event.target.closest('[data-work-filter]');if(filter){taskFilter=filter.dataset.workFilter;render();}
 });
-const applicationStages={draft:'Drafting',review:'In review',submitted:'Submitted',awarded:'Awarded',declined:'Declined'};
+const applicationStages={draft:'Drafting',ready:'Ready for review',review:'In review',reviewed:'Reviewed',submitted:'Submitted',awarded:'Awarded',declined:'Declined'};
 function caseDocument(id){
  return studioDocuments.find(d=>d.applicationDraft&&(d.id===id||d.legacyCase===id));
 }
@@ -201,7 +201,7 @@ function caseInfo(id){
  const key=opportunityKey(draft?.researchId?{researchId:draft.researchId}:notice);
  const tasks=state.tasks.filter(t=>t.related===id||(!t.related&&key&&t.opportunityKey===key));
  const checks=legacy?legacy.checks.map(c=>c.done):(draft?.sections||[]).map(s=>s.status==='approved');
- return {id,legacy,doc,notice,submitted,tasks,key,title:draft?.title||legacy?.title,stage:legacy?.status||doc.trackingStage||'draft',
+ return {id,legacy,doc,notice,submitted,tasks,key,title:draft?.title||legacy?.title,stage:applicationStage(doc,legacy),
   agency:notice?.agency||notice?.funder||draft?.sources?.find(s=>s.role==='notice')?.name||'',
   copy:draft?narrativeCopy(draft):legacyNarrative(legacy),progress:submitted?.preparation||recordProgress(checks,tasks)};
 }
@@ -214,7 +214,7 @@ function stageTag(stage){return `<span class="case-stage stage-${esc(stage)}"><i
 function applications(){
  const ids=[...studioDocuments.filter(d=>d.applicationDraft&&!d.legacyCase).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt)).map(d=>d.id),...Object.keys(state.applications)];
  const records=ids.map(caseInfo).filter(Boolean);
- const visible=records.filter(c=>appFilter==='all'||(appFilter==='active'?['draft','review'].includes(c.stage):appFilter==='waiting'?c.stage==='submitted':['awarded','received','declined'].includes(c.stage)));
+ const visible=records.filter(c=>appFilter==='all'||(appFilter==='active'?preparingStage(c.stage):appFilter==='waiting'?c.stage==='submitted':['awarded','received','declined'].includes(c.stage)));
  const earlier=visible.filter(c=>c.legacy&&!c.doc);
  const current=visible.filter(c=>!earlier.includes(c));
  const row=c=>`<a class="register-row" href="#applications/${esc(c.id)}"><span class="register-name"><i>${icon('file')}</i><span><strong>${esc(c.title)}</strong><small>${esc(c.agency)}</small></span></span>${stageTag(c.stage)}<span class="mini-meter"><progress max="100" value="${c.progress.value}"></progress><small>${c.progress.value}%</small></span><span class="register-end">${c.tasks.filter(t=>!t.done).length} ${icon('arrow')}</span></a>`;
@@ -226,7 +226,7 @@ function applications(){
 function application(id){
  const c=caseInfo(id);
  if(!c)return heading(studioLoaded?'Application unavailable':'Opening application…')+'<a href="#applications">All applications</a>';
- const active=['draft','review'].includes(c.stage), files=caseFiles(c), archived=c.submitted;
+ const active=preparingStage(c.stage), files=caseFiles(c), archived=c.submitted;
  const button=(action,label,primary=false)=>`<button class="btn ${primary?'primary':''}" data-case-action="${action}" data-id="${esc(id)}">${label}</button>`;
  const url=c.notice?.url||c.doc?.applicationDraft.sources.find(s=>s.role==='notice')?.url;
  const sourceLink=/^https?:\/\//i.test(url||'')?`<a class="textlink" href="${esc(url)}" rel="noopener noreferrer" target="_blank">Open funder portal ↗</a>`:'';
@@ -238,8 +238,8 @@ function application(id){
  ${documentSheet(copy,{label:active?'Working draft':archived?(archived.example?'Illustrative submitted copy':'Submitted copy'):'Saved application details',action:archived&&!active?`<small>${dateLabel(archived.date)}</small>`:''})}
  <div class="desk-section-head"><h2>Assigned tasks <small>${c.tasks.length}</small></h2>${button('task','+ Add task')}</div>${c.tasks.map(taskRow).join('')||'<p class="desk-empty">No tasks assigned to this application.</p>'}</section>
  <aside class="matter-aside"><section><h2>${archived?.preparation?'Completion at submission':'Completion'}</h2>${progressHTML(c.progress)}<small>${c.legacy?'Preparation checklist and assigned tasks':'Approved answers and completed tasks'}</small></section>
- <section><h2>Application details</h2><dl><dt>Status</dt><dd>${esc(stageLabel(c.stage))}</dd>${c.legacy?`<dt>Owner</dt><dd>${esc(ownerName(c.legacy.owner))}</dd><dt>Requested</dt><dd>${esc(money(c.legacy.amount))}</dd>`:''}${(c.legacy?.deadline||c.notice?.deadline)?'<dt>Deadline</dt><dd>'+dateLabel(c.legacy?.deadline||c.notice.deadline)+'</dd>':''}${archived?'<dt>Submitted</dt><dd>'+dateLabel(archived.date)+'</dd>':''}${archived?.reference?'<dt>Reference</dt><dd>'+esc(archived.reference)+'</dd>':''}${review?'<dt>Fit decision</dt><dd>'+esc(review.decision)+'</dd>':''}</dl>${review?.note?'<p class="desk-empty">'+esc(review.note)+'</p>':''}${sourceLink}
- ${c.legacy?button('details',active?'Manage preparation':'Manage follow-up'):button('status','Update status')}</section>
+ <section><h2>Application details</h2><dl><dt>Status</dt><dd>${esc(stageLabel(c.stage))}</dd>${c.legacy?`<dt>Owner</dt><dd>${esc(ownerName(c.legacy.owner))}</dd><dt>Requested</dt><dd>${esc(money(c.legacy.amount))}</dd>`:''}${(c.legacy?.deadline||c.notice?.deadline)?'<dt>Deadline</dt><dd>'+dateLabel(c.legacy?.deadline||c.notice.deadline)+'</dd>':''}${archived?'<dt>Submitted</dt><dd>'+dateLabel(archived.date)+'</dd>':''}${archived?.reference?'<dt>Reference</dt><dd>'+esc(archived.reference)+'</dd>':''}${c.doc?.funderDecision?.date?'<dt>Decision date</dt><dd>'+dateLabel(c.doc.funderDecision.date)+'</dd>':''}${review?'<dt>Fit decision</dt><dd>'+esc(review.decision)+'</dd>':''}</dl>${review?.note?'<p class="desk-empty">'+esc(review.note)+'</p>':''}${sourceLink}
+ ${c.legacy?button('details',active?'Manage preparation':'Manage follow-up'):c.stage==='submitted'?button('decision','Record funder decision'):''}</section>
  <section><div class="desk-section-head"><h2>Related documents</h2>${button('link','+ Link')}</div>${files.map(d=>`<a class="case-file" data-open-support href="#studio/${esc(d.id)}">${icon('file')}<span>${esc(d.name)}</span></a>`).join('')||'<p class="desk-empty">No documents linked.</p>'}</section></aside></div></div>`;
 }
 function returnToNotice(form){
@@ -298,7 +298,7 @@ document.addEventListener('click',async e=>{
  switch(button.dataset.caseAction){
  case 'write':button.disabled=true;await openCaseDraft(c);break;
  case 'task':addTask({caseId:c.id});break;
- case 'details':caseDialog(c.title,['review','draft'].includes(c.stage)?applicationEditor(c.id,c.legacy):submissionTracking(c.id,c.legacy));break;
+ case 'details':caseDialog(c.title,preparingStage(c.stage)?applicationEditor(c.id,c.legacy):submissionTracking(c.id,c.legacy));break;
  case 'read':if(c.submitted)caseDialog('Submitted application',documentSheet(c.submitted,{label:c.submitted.example?'Illustrative submitted copy':'Submitted copy',full:true})+`<div class="dialog-actions"><button class="btn" data-case-action="download" data-id="${esc(c.id)}">Download submitted copy</button><button class="btn" data-case-action="write" data-id="${esc(c.id)}">Open working draft</button></div>`);break;
  case 'download':{
   if(!c.submitted)break;
@@ -309,21 +309,22 @@ document.addEventListener('click',async e=>{
   const available=studioDocuments.filter(d=>d.id!==c.doc?.id&&!caseFiles(c).some(link=>link.id===d.id));
   caseDialog('Link a document',available.length?`<form class="work-form" id="case-link-form" data-id="${esc(c.id)}"><label class="field">File from Documents<select name="file">${available.map(d=>`<option value="${esc(d.id)}">${esc(d.name)}</option>`).join('')}</select></label><button class="btn primary">Link document</button></form>`:'<p>All available files are linked.</p><a class="btn" href="#library">Open Documents</a>');break;
  }
- case 'submit':if(c.legacy){recordSubmission(c.id);break;}
- case 'status':{
-  const options=Object.entries(applicationStages);
-  const action=button.dataset.caseAction;
-  caseDialog(action==='submit'?'Record submission':'Update application status',`<form id="case-status-form" data-id="${esc(c.id)}" class="work-form"><label class="field">Status<select name="stage">${options.map(([key,label])=>`<option value="${key}" ${(action==='submit'?'submitted':c.stage)===key?'selected':''}>${label}</option>`).join('')}</select></label><div data-submission-fields ${action==='submit'||c.stage==='submitted'?'':'hidden'}><p>After applying through the funder, save a dated copy of the answers you sent.</p><label class="field">Submission date<input type="date" name="date" value="${pacificDate()}" max="${pacificDate()}"></label><label class="field">Funder reference (optional)<input name="ref" maxlength="160"></label></div><button class="btn primary">Save record</button></form>`);break;
+ case 'submit':{
+  if(!preparingStage(c.stage))break;
+  if(c.legacy){recordSubmission(c.id);break;}
+  caseDialog('Record submission',`<form id="case-submission-form" data-id="${esc(c.id)}" class="work-form"><p>Save a copy of the application sent to the funder.</p><label class="field">Submission date<input type="date" name="date" required value="${pacificDate()}" max="${pacificDate()}"></label><label class="field">Funder reference (optional)<input name="ref" maxlength="160"></label><button class="btn primary">Confirm submission</button></form>`);break;
+ }
+ case 'decision':{
+  if(c.stage!=='submitted')break;
+  caseDialog('Record funder decision',`<form id="case-decision-form" data-id="${esc(c.id)}" class="work-form"><label class="field">Decision date<input type="date" name="date" required value="${pacificDate()}" min="${esc(c.submitted?.date||'')}" max="${pacificDate()}"></label><div class="dialog-actions"><button name="outcome" value="awarded" class="btn">Confirm award</button><button name="outcome" value="declined" class="btn">Confirm decline</button></div></form>`);break;
  }
  }
  }catch(error){toast(error.message);button.disabled=false;}
 });
-document.addEventListener('change',e=>{
- if(e.target.matches('#case-status-form [name=stage]'))e.target.form.querySelector('[data-submission-fields]').hidden=e.target.value!=='submitted';
-});
 document.addEventListener('submit',async e=>{
- const f=e.target;if(!['fit-review-form','case-link-form','case-status-form'].includes(f.id))return;
- e.preventDefault();const values=new FormData(f),submit=f.querySelector('button');submit.disabled=true;
+ const f=e.target;if(!['fit-review-form','case-link-form','case-submission-form','case-decision-form'].includes(f.id))return;
+ e.preventDefault();const values=new FormData(f),buttons=f.querySelectorAll('button');
+ if(f.dataset.saving)return;f.dataset.saving='true';buttons.forEach(b=>b.disabled=true);
  try{
  let ok;
  if(f.id==='fit-review-form'){
@@ -333,18 +334,20 @@ document.addEventListener('submit',async e=>{
   if(f.id==='case-link-form'){
    const id=String(values.get('file'));if(!studioDoc(id))throw Error('File unavailable.');
    ok=await saveCaseFields(c,{linkedFiles:[...new Set([...(c.legacy?.linkedFiles||c.doc?.linkedFiles||[]),id])]});
+  }else if(f.id==='case-submission-form'){
+   if(!preparingStage(c.stage))throw Error('This application already has a submission or decision.');
+   const date=String(values.get('date')||'');
+   if(!date||date>pacificDate())throw Error('Choose the date you submitted.');
+   ok=await saveCaseFields(c,{submissionCopy:{...narrativeCopy(c.doc.applicationDraft),preparation:c.progress,date,reference:String(values.get('ref')||'').trim()}});
   }else{
-   const stage=String(values.get('stage'));if(!Object.hasOwn(applicationStages,stage))throw Error('Choose a status.');
-   const fields={trackingStage:stage};
-   if(stage==='submitted'&&!c.submitted){
-    const date=String(values.get('date'));if(!date||date>pacificDate())throw Error('Choose the date you submitted.');
-    fields.submissionCopy={...narrativeCopy(c.doc.applicationDraft),preparation:c.progress,date,reference:String(values.get('ref')).trim()};
-   }
-   ok=await saveCaseFields(c,fields);
+   const outcome=e.submitter?.value,date=String(values.get('date')||'');
+   if(c.stage!=='submitted'||!['awarded','declined'].includes(outcome))throw Error('Choose the confirmed funder decision.');
+   if(!date||date>pacificDate()||(c.submitted?.date&&date<c.submitted.date))throw Error('Check the decision date.');
+   ok=await saveCaseFields(c,{funderDecision:{outcome,date}});
   }
  }
  if(ok){closeDialog();render();returnToNotice(f);toast('Saved');}
- }catch(error){toast(error.message);}finally{submit.disabled=false;}
+ }catch(error){toast(error.message);}finally{delete f.dataset.saving;buttons.forEach(b=>b.disabled=false);}
 });
 function applicationEditor(id,a){return `<form id="working-application" data-id="${esc(id)}" class="work-form"><div class="money-inputs"><label class="field">Funding requested ($)<input name="amount" type="number" min="1" max="1000000" value="${a.amount}" required></label><label class="field">Application owner${ownerSelect(a.owner)}</label></div><h3>Preparation checklist</h3>${a.checks.map((c,i)=>`<label class="step-check"><input name="prep-${i}" type="checkbox" ${c.done?'checked':''}><span>${c.name}</span></label>`).join('')}<div class="report-actions"><button class="btn primary" name="action" value="save">Save progress</button><button class="btn" name="action" value="review">Ask for review</button></div></form>`;}
 
@@ -357,7 +360,7 @@ function chatContext(){const r=route();if(r.startsWith('discussions')){const t=d
 function placeChatPanel(){const home=document.querySelector('#home-conversation-slot');(home&&chatOpen?home:$('#app')).insertAdjacentHTML('beforeend',chatPanel());}
 function refreshChat(){const wasDocked=document.body.classList.contains('chat-open');const readingPosition=wasDocked?($('.shell')?.scrollTop||0):window.scrollY;const opening=chatOpen&&!$('#beedy-panel')?.classList.contains('is-open');syncBeedyDocument();document.body.classList.toggle('chat-open',chatOpen&&route()!=='today');document.body.classList.toggle('home-conversation',chatOpen&&route()==='today');document.body.classList.toggle('chat-expanded',chatOpen&&chatExpanded);$('#beedy-panel')?.remove();placeChatPanel();document.querySelectorAll('.beedy-launch').forEach(b=>b.setAttribute('aria-expanded',String(chatOpen)));if(route()!=='today'&&wasDocked!==chatOpen){if(chatOpen){$('.shell').scrollTop=readingPosition;}else{window.scrollTo({top:readingPosition,behavior:'instant'});}}if(opening)$('#beedy-panel')?.classList.add('is-entering');if(chatOpen){const log=$('.chat-messages');const latest=log.querySelector('.chat-message:last-of-type');log.scrollTop=agentBusy||agentError?log.scrollHeight:latest?.classList.contains('assistant')?Math.max(0,latest.offsetTop-12):state.chat.length?log.scrollHeight:0;}}
 function recordSubmission(id){showDialog('<h2 id="dialog-title">Record your submission</h2>',`<p class="small muted">Use this after submitting through the funder’s portal. This updates your application record.</p><form id="submission-form" data-id="${id}"><label class="field">Submission date<input type="date" name="submitted" value="${pacificDate()}" max="${pacificDate()}" required></label><label class="field">Confirmation reference<input name="reference" placeholder="Optional reference from the funder" maxlength="100"></label><label class="field">Expected decision date<input name="decisionDate" type="date" value="${plusDays(pacificDate(),30)}" min="${pacificDate()}" required></label><label class="step-check"><input name="acknowledged" type="checkbox"><span>We have a submission receipt.</span></label><button class="btn primary">Save submission record</button></form>`)}
-function recordDecision(id){showDialog('<h2 id="dialog-title">Record the funder’s decision</h2>',`<form id="decision-form" data-id="${id}"><label class="field">Outcome<select name="outcome" id="decision-outcome"><option value="awarded">Award confirmed</option><option value="declined">Not awarded</option></select></label><label class="field">Decision date<input name="date" type="date" value="${pacificDate()}" min="${state.applications[id].submitted}" max="${pacificDate()}" required></label><div id="award-fields"><label class="field">Award amount ($)<input name="amount" type="number" min="1" max="1000000" value="${state.applications[id].amount}" required></label><label class="field">Expected funding date<input name="fundingDate" type="date" min="${pacificDate()}" required></label></div><button class="btn primary">Save decision</button><p class="note">Record a confirmed decision, not a prediction.</p></form>`)}
+function recordDecision(id){showDialog('<h2 id="dialog-title">Record the funder’s decision</h2>',`<form id="decision-form" data-id="${id}"><fieldset><legend>Funder decision</legend><label class="step-check"><input type="radio" name="outcome" value="awarded" required> Award confirmed</label><label class="step-check"><input type="radio" name="outcome" value="declined" required> Not awarded</label></fieldset><label class="field">Decision date<input name="date" type="date" value="${pacificDate()}" min="${state.applications[id].submitted}" max="${pacificDate()}" required></label><div id="award-fields"><label class="field">Award amount ($)<input name="amount" type="number" min="1" max="1000000" value="${state.applications[id].amount}" required></label><label class="field">Expected funding date<input name="fundingDate" type="date" min="${pacificDate()}" required></label></div><button class="btn primary">Save decision</button><p class="note">Record a confirmed decision, not a prediction.</p></form>`)}
 function recordFunding(id){showDialog('<h2 id="dialog-title">Have the funds arrived?</h2>',`<p>${money(state.applications[id].amount)} · ${grant(id).name}</p><form id="funding-form" data-id="${id}"><label class="field">Date received<input type="date" name="receivedDate" value="${pacificDate()}" min="${state.applications[id].decisionDate}" max="${pacificDate()}" required></label><label class="step-check"><input type="checkbox" required><span>I have confirmed receipt of the full award.</span></label><button class="btn primary">Record receipt</button><p class="note">This records a status only. It does not move money.</p></form>`)}
 function createAwardTasks(id,a){
  if(state.tasks.some(t=>t.related===id&&t.awardSetup))return;
@@ -365,7 +368,7 @@ function createAwardTasks(id,a){
 }
 // Additional interactions are explicit user actions; Beedy never silently changes records.
 document.addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(!b)return;const id=b.dataset.id;switch(b.dataset.action){case'chat-clear':clearBeedyChat();break;case'chat-undo-clear':undoClearBeedyChat();break;case'chat-expand':{const log=$('.chat-messages'),position=log?.scrollTop;chatExpanded=!chatExpanded;refreshChat();if(position!==undefined)$('.chat-messages').scrollTop=position;$('.chat-expand')?.focus({preventScroll:true});break;}case'chat-upload':$('#beedy-upload')?.click();break;case'chat-toggle':chatOpen=!chatOpen;refreshChat();if(chatOpen){checkAgentConnection();$('#beedy-message').focus()}break;case'chat-close':chatOpen=false;refreshChat();$('.beedy-launch')?.focus();break;case'chat-prompt':replyToBeedy(b.dataset.prompt);break;case'chat-create-task':{const m=state.chat.find(m=>m.id===id);if(!m?.suggestion)return;const t=m.suggestion;showDialog('<h2 id="dialog-title">Review Beedy’s suggested task</h2>',`<form id="new-team-task"><label class="field">Task name<input name="title" value="${esc(t.title)}" maxlength="120" required></label><label class="field">Assigned to${ownerSelect(t.owner)}</label><div class="money-inputs"><label class="field">Start date<input type="date" name="start" value="${pacificDate()}" required></label><label class="field">Due date<input name="date" type="date" value="${t.date}" min="${pacificDate()}" required></label></div><label class="field">Related application${relatedSelect(t.related)}</label><label class="field">Notes<textarea name="notes">${esc(t.notes)}</textarea></label><button class="btn primary">Create task</button></form>`);break;}case'application-filter':appFilter=id;render();break;case'record-submission':recordSubmission(id);break;case'record-decision':recordDecision(id);break;case'record-funding':recordFunding(id);break;case'timeline-prev':timelineStart=plusDays(timelineStart,-42);render();break;case'timeline-next':timelineStart=plusDays(timelineStart,42);render();break;case'timeline-now':timelineStart=weekStart();render();break;}});
-document.addEventListener('change',e=>{if(e.target.id==='task-owner'){taskOwner=e.target.value;render()}if(e.target.id==='task-filter'){taskFilter=e.target.value;render()}if(e.target.id==='decision-outcome'){const hide=e.target.value==='declined';$('#award-fields').hidden=hide;$('#award-fields').querySelectorAll('input').forEach(i=>{i.disabled=hide;i.required=!hide})}});
+document.addEventListener('change',e=>{if(e.target.id==='task-owner'){taskOwner=e.target.value;render()}if(e.target.id==='task-filter'){taskFilter=e.target.value;render()}if(e.target.matches('#decision-form [name=outcome]')){const hide=e.target.value==='declined';$('#award-fields').hidden=hide;$('#award-fields').querySelectorAll('input').forEach(i=>{i.disabled=hide;i.required=!hide})}});
 document.addEventListener('input',e=>{if(e.target.id==='beedy-message'){chatDraft=e.target.value;e.target.style.height='auto';e.target.style.height=Math.min(140,e.target.scrollHeight)+'px';}if(e.target.name==='start'&&e.target.form?.elements.date)e.target.form.elements.date.min=e.target.value;});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&chatOpen&&!$('#detail').open){chatOpen=false;refreshChat();$('.beedy-launch')?.focus()}if(e.target.id==='beedy-message'&&e.key==='Enter'&&!e.shiftKey){e.preventDefault();if(chatDraft.trim())replyToBeedy(chatDraft.trim())}});
 document.addEventListener('submit',e=>{const f=e.target,d=new FormData(f),id=f.dataset.id;let message='';
@@ -400,7 +403,7 @@ function undoClearBeedyChat(){
 }
 function syncBeedyDocument(){const d=selectContextDocument(route(),studioDocuments,pinnedDocumentId,excludedDocumentId);beedyDocument=documentContext(d);if(d)pinnedDocumentId=d.id;}
 function currentPageContext(){return {...chatContext(),route:route(),attachedDocument:beedyDocument?{id:beedyDocument.id,name:beedyDocument.name}:null,documentTab:route().startsWith('studio/')?studioTab:null,selectedDate:route()==='calendar'?selectedDate:null,calendarMonth:route()==='calendar'?`${year}-${month+1}`:null,timelineStart:route()==='timeline'?timelineStart:null,taskFilters:route()==='tasks'?{status:taskFilter,owner:taskOwner}:null,applicationFilter:route()==='applications'?appFilter:null,discussionId:route().startsWith('discussions')?(discussionById(route().split('/')[1])||discussionResults()[0])?.id:null};}
-function agentSnapshot(){syncBeedyDocument();const page=currentPageContext();return {documents:beedyDocument?[beedyDocument]:[],documentLibrary:studioDocuments.slice(0,100).map(d=>({id:d.id,name:d.name,words:wordCount(d.text),attached:d.id===beedyDocument?.id})),currentPage:page,organisationProfile,profile:{name:state.name,organisation:state.org,mission:state.mission||'',role:state.profileRole||'Programme lead'},plugins:{mode:'Workflow previews only; no mailbox access',preferences:state.connectionPlans||{}},discussions:discussionContextSnapshot(state.discussions||[],page.discussionId),demoDate:pacificDate(),currentDate:pacificDate(),timeZone:'America/Los_Angeles',organisation:state.org,tasks:state.tasks,applications:{...state.applications,...Object.fromEntries(studioDocuments.filter(d=>d.applicationDraft).slice(0,50).map(d=>[d.id,{title:d.applicationDraft.title,status:d.trackingStage||'draft',updatedAt:d.updatedAt,documentId:d.id}]))},opportunities:federal.context(),calendar:events(),readiness:state.readiness,report:state.report,team:members.map(m=>({id:m.id,name:m.name(),role:m.id==='sarah'?(state.profileRole||m.role):m.role}))};}
+function agentSnapshot(){syncBeedyDocument();const page=currentPageContext();return {documents:beedyDocument?[beedyDocument]:[],documentLibrary:studioDocuments.slice(0,100).map(d=>({id:d.id,name:d.name,words:wordCount(d.text),attached:d.id===beedyDocument?.id})),currentPage:page,organisationProfile,profile:{name:state.name,organisation:state.org,mission:state.mission||'',role:state.profileRole||'Programme lead'},plugins:{mode:'Workflow previews only; no mailbox access',preferences:state.connectionPlans||{}},discussions:discussionContextSnapshot(state.discussions||[],page.discussionId),demoDate:pacificDate(),currentDate:pacificDate(),timeZone:'America/Los_Angeles',organisation:state.org,tasks:state.tasks,applications:{...state.applications,...Object.fromEntries(studioDocuments.filter(d=>d.applicationDraft).slice(0,50).map(d=>[d.id,{title:d.applicationDraft.title,status:applicationStage(d,state.applications[caseIdFor(d)]),updatedAt:d.updatedAt,documentId:d.id}]))},opportunities:federal.context(),calendar:events(),readiness:state.readiness,report:state.report,team:members.map(m=>({id:m.id,name:m.name(),role:m.id==='sarah'?(state.profileRole||m.role):m.role}))};}
 async function checkAgentConnection(){try{const r=await fetch('/api/beedy/status',{cache:'no-store'});if(!r.ok)throw new Error();const d=await r.json();agentConnection=connectionState(d);agentSignInMethod=d.signInMethod||'demo';document.querySelectorAll('[data-demo-signout]').forEach(b=>b.hidden=!(d.authenticated&&agentSignInMethod==='demo'));}catch{agentConnection='unavailable'}refreshChat();}
 function chatMessage(m){
  const assistant=m.role==='assistant';
@@ -729,7 +732,7 @@ function libraryKind(doc){return doc.applicationDraft?'draft':doc.importedGrantI
 function documentRows(){
  const kinds={support:'Supporting document',notice:'Funding notice',draft:'Application draft'};
  const docs=studioDocuments.filter(doc=>(studioFilter==='all'||studioFilter===libraryKind(doc)||(studioFilter==='favorites'&&doc.starred))&&doc.name.toLowerCase().includes(studioSearch.toLowerCase())).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));
- return docs.map(d=>`<div class="document-row"><button class="document-open" data-action="document-open" data-id="${esc(d.id)}">${documentIcon(d)}<span><strong>${esc(d.name)}</strong><small>${esc(kinds[libraryKind(d)])}${d.sample?' · Example':''}</small></span></button><span class="document-status">${d.applicationDraft?esc(applicationStages[d.trackingStage||'draft']):esc(profileMemory?.projects?.find(p=>p.id===documentProject(d))?.name||'Organisation')}</span><time>${dateLabel(d.updatedAt.slice(0,10))}</time><button class="iconbtn document-star" data-action="document-star" data-id="${esc(d.id)}" aria-label="Star ${esc(d.name)}" aria-pressed="${!!d.starred}">${d.starred?'★':'☆'}</button></div>`).join('')||`<div class="flow-empty"><h3>${studioSearch?'No matching files':'No files in this view'}</h3><p>${studioSearch?'Try another file name.':studioFilter==='draft'?'Drafts you start from Opportunities appear here.':studioFilter==='notice'?'Save a funder notice from Opportunities to reference it here.':'Add a programme brief, budget or evaluation to use when drafting.'}</p></div>`;
+ return docs.map(d=>`<div class="document-row"><button class="document-open" data-action="document-open" data-id="${esc(d.id)}">${documentIcon(d)}<span><strong>${esc(d.name)}</strong><small>${esc(kinds[libraryKind(d)])}${d.sample?' · Example':''}</small></span></button><span class="document-status">${d.applicationDraft?esc(stageLabel(applicationStage(d,state.applications[caseIdFor(d)]))):esc(profileMemory?.projects?.find(p=>p.id===documentProject(d))?.name||'Organisation')}</span><time>${dateLabel(d.updatedAt.slice(0,10))}</time><button class="iconbtn document-star" data-action="document-star" data-id="${esc(d.id)}" aria-label="Star ${esc(d.name)}" aria-pressed="${!!d.starred}">${d.starred?'★':'☆'}</button></div>`).join('')||`<div class="flow-empty"><h3>${studioSearch?'No matching files':'No files in this view'}</h3><p>${studioSearch?'Try another file name.':studioFilter==='draft'?'Drafts you start from Opportunities appear here.':studioFilter==='notice'?'Save a funder notice from Opportunities to reference it here.':'Add a programme brief, budget or evaluation to use when drafting.'}</p></div>`;
 }
 function documentLibrary(){
  const filters=[['all','All files'],['support','Supporting documents'],['notice','Funding notices'],['draft','Drafts'],['favorites','Starred']];
