@@ -78,3 +78,19 @@ main:focus:not(:focus-visible) { outline:none; }
 @media(max-width:700px){
  .topbar .cloud-status { max-width:6.4rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 }
+
+.closeout-layout {display:grid;grid-template-columns:minmax(0,2fr) minmax(15rem,1fr);gap:clamp(1rem,2vw,2rem);align-items:start;margin-block:1.75rem;max-width:76rem}
+.closeout-card {background:rgba(255,255,255,.92);border:1px solid #dfe5db;border-radius:1.25rem;padding:clamp(1.25rem,2.5vw,2.25rem);min-width:0;overflow-wrap:anywhere}
+.closeout-card h2 {font:500 1.55rem/1.25 Sentient,Georgia,serif;margin:0 0 1.1rem}
+.closeout-card h3,.closeout-card dt,.closeout-finance small {color:#546150;font-size:.85rem;font-weight:550}
+.closeout-card h3 {margin:1.5rem 0 .35rem}
+.closeout-card p {white-space:pre-line;max-width:66ch;line-height:1.65}
+.closeout-finance,.closeout-review dl {border-top:1px solid #dfe5db;padding-top:1.25rem;margin-top:1.5rem}
+.closeout-finance {display:flex;flex-wrap:wrap;gap:1rem 2rem}
+.closeout-finance strong {display:block;margin-top:.35rem;font-variant-numeric:tabular-nums}
+.closeout-review dl {display:grid;grid-template-columns:auto 1fr;gap:.65rem;margin-bottom:1.5rem}
+.closeout-review dd {margin:0;text-align:right}
+.closeout-review>.textlink {display:block;width:fit-content;margin-top:1rem}
+.closeout-card .field {margin:1rem 0}
+@container (max-width: 720px){.closeout-layout{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:900px){.closeout-layout{grid-template-columns:minmax(0,1fr)}}
