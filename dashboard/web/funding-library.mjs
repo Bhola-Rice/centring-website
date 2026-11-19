@@ -68,5 +68,5 @@ export function createFundingLibrary({esc,render,showDialog,dateLabel,fitControl
   if(button.dataset.research==='prev')page=Math.max(1,page-1);
   void search();
  });
- return {panel,open,isFit:()=>fit,setFit(value){if(fit!==value){fit=value;page=1;void search();}},mount(){if(!started){started=true;queueMicrotask(search);}}};
+ return {panel,open,selectSource(id){source=id;query='';page=1;fit=false;includeClosed=false;void search();},isFit:()=>fit,setFit(value){if(fit!==value){fit=value;page=1;void search();}},mount(){if(!started){started=true;queueMicrotask(search);}}};
 }

@@ -105,3 +105,21 @@ body #detail:has(.settings-edit) { width: min(440px, 92vw); border-radius: 8px; 
 .settings-logo-preview .workspace-logo { display:block; max-width:100%; max-height:56px; object-fit:contain; }
 .settings-logo-preview .org { font:400 24px/1.2 var(--serif); }
 @media(max-width:600px){.workspace-path .workspace-logo{max-width:86px;max-height:26px}}
+
+.settings-tabs{overflow-x:auto}
+.connector-library{margin-top:34px}
+.connector-library h2{font:400 clamp(26px,3vw,34px)/1.2 var(--serif);margin:0 0 20px}
+.connector-filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px}
+.connector-filters button{padding:7px 12px;border:1px solid #ddd;border-radius:5px;background:white;color:#515151;font-size:13px}
+.connector-filters button[aria-pressed=true]{background:#171717;color:white;border-color:#171717}
+.connector-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(245px,100%),1fr));gap:12px}
+.connector-tile{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto 1fr auto;align-items:start;gap:10px 12px;text-align:left;padding:20px;border:1px solid #dedede;border-radius:9px;color:#1b1b1b;background:white;transition:box-shadow .18s,border-color .18s}
+.connector-tile:hover{border-color:#aaa;box-shadow:0 3px 12px #0000000a}
+.connector-mark,.connector-tile .tool-mark{display:grid;place-items:center;width:36px;height:36px;border:1px solid #dedede;border-radius:8px}
+.connector-mark .icon{width:18px}
+.connector-meta{justify-self:end;align-self:center;color:#676767;font-size:11px}
+.connector-tile strong,.connector-desc,.connector-link{grid-column:1/-1}
+.connector-tile strong{font:600 17px/1.3 var(--sans)}
+.connector-desc{font:400 14px/1.5 var(--sans);color:#545454}
+.connector-link{display:flex;align-items:center;gap:6px;margin-top:8px;font:500 12px var(--sans)}
+.connector-link .icon{width:14px;height:14px}
