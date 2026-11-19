@@ -31,7 +31,7 @@ body.chat-expanded{--chat-width:620px}
 .answer-body p:last-child{margin-bottom:0}
 .answer-body strong{font-weight:600;color:#263121}
 .answer-body em{font-style:italic}
-.answer-body h3{font:600 15px/1.5 Instrument,Arial,sans-serif;margin:23px 0 9px;letter-spacing:-.2px}
+.answer-body h3{font:600 15px/1.5 Arial,Helvetica,sans-serif;margin:23px 0 9px;letter-spacing:-.2px}
 .answer-body h3:first-child{margin-top:0}
 .answer-body ul,.answer-body ol{padding-left:21px;margin:12px 0 18px}
 .answer-body li{padding-left:3px;margin:7px 0}
@@ -93,7 +93,7 @@ body.chat-expanded{--chat-width:620px}
 .thinking{padding:12px 0;color:#7a866e;font-size:11px}
 .proposal-card{padding:18px;border-radius:20px;border:1px solid #fff;background:linear-gradient(140deg,#ffffffcf,#f7faf1b8);box-shadow:0 5px 20px #3146230b,inset 0 1px 0 #fff;margin-top:18px}
 .proposal-eyebrow{font-size:10px;color:#70815e;background:#eaf1e2b3;padding:4px 8px;border-radius:20px}
-.proposal-card h3{font:600 16px/1.5 Instrument,sans-serif;margin:13px 0 4px}
+.proposal-card h3{font:600 16px/1.5 Arial,Helvetica,sans-serif;margin:13px 0 4px}
 .proposal-card>p{font-size:12px;line-height:1.6;margin:0 0 15px;color:#75806c}
 .proposal-card dl{margin:15px 0;font-size:12px}
 .proposal-card dl div{display:grid;grid-template-columns:100px minmax(0,1fr);gap:12px;padding:10px 0;border-color:#53634314}
@@ -128,7 +128,7 @@ body.chat-expanded{--chat-width:620px}
 @media(prefers-reduced-motion:reduce){.beedy-panel.is-entering{animation:none}}
 
 /* Conversation controls stay separate from document actions. */
-.beedy-context .chat-clear{margin-left:auto;flex-shrink:0;white-space:nowrap;background:transparent;border:1px solid #dce4d6;border-radius:7px;padding:6px 9px;color:#526148;font:500 11px Instrument,Arial,sans-serif;cursor:pointer;min-height:30px}.beedy-context .chat-clear:hover{background:#edf3e7}.beedy-context .chat-clear:disabled{opacity:.4;cursor:default}.beedy-context .chat-clear:focus-visible,.chat-cleared button:focus-visible{outline:2px solid #719852;outline-offset:2px}.chat-cleared{display:flex;align-items:center;justify-content:space-between;flex-shrink:0;margin:10px 22px 0;padding:9px 12px;background:#edf4e6;border:1px solid #dce8d2;border-radius:9px;font-size:12px;color:#526148}.chat-cleared button{border:0;background:transparent;padding:5px 8px;font:600 12px Instrument,Arial,sans-serif;color:#2d4726;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.beedy-context .chat-clear{margin-left:auto;flex-shrink:0;white-space:nowrap;background:transparent;border:1px solid #dce4d6;border-radius:7px;padding:6px 9px;color:#526148;font:500 11px Arial,Helvetica,sans-serif;cursor:pointer;min-height:30px}.beedy-context .chat-clear:hover{background:#edf3e7}.beedy-context .chat-clear:disabled{opacity:.4;cursor:default}.beedy-context .chat-clear:focus-visible,.chat-cleared button:focus-visible{outline:2px solid #719852;outline-offset:2px}.chat-cleared{display:flex;align-items:center;justify-content:space-between;flex-shrink:0;margin:10px 22px 0;padding:9px 12px;background:#edf4e6;border:1px solid #dce8d2;border-radius:9px;font-size:12px;color:#526148}.chat-cleared button{border:0;background:transparent;padding:5px 8px;font:600 12px Arial,Helvetica,sans-serif;color:#2d4726;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 
 .chat-grants { margin: .75rem 0; border: 1px solid #dce4d6; border-radius: 14px; background: rgba(255,255,255,.75); }
 .chat-grants-label, .chat-grants summary { padding: .65rem .85rem; font-size: .81rem; color: #495c40; }

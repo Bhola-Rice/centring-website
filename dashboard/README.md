@@ -36,3 +36,16 @@ Documents and workspace records sync to the signed-in account. In the hosted app
 Everyone using the current shared workspace login sees the same cloud records. Personal avatar/settings and Beedy conversation history remain browser-local. Individual member invitations, role permissions, and real-time co-editing are not implemented. A merge to GitHub does not itself publish the application; follow the deployment guide.
 
 Old feature documents may describe their original browser-only behavior. This README and the deployment/data guide describe the current persistence model.
+
+### Funding research in the demo
+
+Every authenticated demo account receives the same public Upbring profile and read-only funding library. Personal project memory and documents continue to use their existing account storage. The library has its own table in the dashboard database. Find grants searches the imported Pharos and Arachne opportunities. The workspace calendar uses saved grant deadlines, application milestones, reports and team tasks. Upbring’s planning inventory is background material.
+
+After applying the dashboard migrations, refresh the local library with a source snapshot:
+
+```sh
+python3 scripts/import-funding.py pharos /private/path/to/pharos.db
+python3 scripts/import-funding.py arachne /private/path/to/grants.db
+```
+
+Each command replaces only that source in one transaction. The input databases are opened read-only. Supply --database to select a migrated SQLite destination. Hosted environments require the same migration and a private data import into their bound database. Keep source snapshots, calendar data and any board materials outside Git and static web assets.

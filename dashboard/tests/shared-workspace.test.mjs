@@ -11,7 +11,7 @@ test('two clients merge independent workspace edits and retain conflicts',async(
   return Response.json(structuredClone(record));
  };
  try{
- let a={},b={};const ca=createSharedWorkspace({getState:()=>a,apply:d=>a=structuredClone(d),status(){}}),cb=createSharedWorkspace({getState:()=>b,apply:d=>b=structuredClone(d),status(){}});
+ let a={},b={};const ca=createSharedWorkspace({getState:()=>a,apply:d=>a=d,status(){}}),cb=createSharedWorkspace({getState:()=>b,apply:d=>b=d,status(){}});
  await ca.start();await cb.start();a.tasks[0].title='A changed';await ca.flush();b.tasks[1].title='B changed';await cb.flush();assert.equal(record.data.tasks[0].title,'A changed');assert.equal(record.data.tasks[1].title,'B changed');
  await ca.refresh();a.org='Local team';b.org='Other team';await cb.flush();await ca.flush();assert.equal(record.data.org,'Other team');assert.deepEqual(ca.conflicts,['org']);assert.equal(a.org,'Local team');assert.ok(ca.pending);
  // Reload restores unsent local work instead of overwriting it with the team version.
