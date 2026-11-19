@@ -2,7 +2,9 @@
 :root{
  --ink:#20221E;--paper:#FFFFFF;--soft:#F6F7F3;--muted:#6C7067;--line:#DFE2DA;
  --green:#8EE53F;--green-hover:#7BD32D;--focus:#497E1D;
- --quiet:var(--muted);--rule:var(--line);--rail-bg:#101010;
+ --quiet:var(--muted);--rule:var(--line);--rail-bg:var(--paper);
+ --selection:color-mix(in srgb,var(--green) 18%,var(--paper));
+ --tint:color-mix(in srgb,var(--green) 8%,var(--paper));
  --sans:Arial,Helvetica,sans-serif;--serif:Sentient,Georgia,serif;
  font-family:var(--sans);color:var(--ink)
 }
@@ -27,18 +29,18 @@ body .submit span{color:inherit}
 @media (prefers-reduced-motion:reduce){body :is(.btn.primary,.home-send,.submit,.chat-send),body .chat-compose .composer-controls .send-message{transition:none}}
 body .btn:not(.primary){background:var(--paper);color:var(--ink);border:1px solid var(--line)}
 body .btn:not(.primary):hover{background:var(--soft)}
-body .topbar .topright .beedy-launch{background:var(--ink);color:var(--paper);border:1px solid var(--ink);border-radius:4px;box-shadow:none}
-body .topbar .topright .beedy-launch:hover{background:#363831}
-body .topbar .topright .beedy-launch[aria-expanded=true]{background:var(--soft);color:var(--ink);border-color:var(--line)}
-body .topbar .beedy-mark{color:inherit}
-body .sidebar{color-scheme:dark;color:#eee;border-right-color:#232323;--ink:#f4f4f4;--muted:#aaa;--rule:#303030;--line:#303030;--soft:#222}
-body .sidebar .nav a,body .sidebar .person-link{color:#ccc;background:transparent}
-body .sidebar .nav a:hover,body .sidebar .person-link:hover{background:#222;color:white}
-body .sidebar .nav a.active{background:#2e2e2e;box-shadow:none;color:white}
-body .sidebar .rail-brand,body .sidebar .person-link strong{color:#fafafa}
-body .sidebar .person-link small,body .sidebar .nav-group{color:#aaa}
-body .sidebar .centring-mark{background:#fafafa;color:#101010}
-body .sidebar :focus-visible{outline-color:#eee}
+body .topbar .topright .beedy-launch{background:var(--tint);color:var(--ink);border:1px solid var(--line);border-radius:4px;box-shadow:none;transition:background-color .2s}
+body .topbar .topright .beedy-launch:hover{background:var(--green)}
+body .topbar .topright .beedy-launch[aria-expanded=true]{background:var(--selection);border-color:var(--focus)}
+body .topbar .beedy-mark{color:var(--focus)}
+body .sidebar{color-scheme:light}
+body .sidebar .nav a,body .sidebar .person-link{color:var(--ink);background:transparent}
+body .sidebar .nav a:hover,body .sidebar .person-link:hover{background:var(--tint)}
+body .sidebar .nav a.active{background:var(--selection);box-shadow:inset 3px 0 var(--green)}
+body .sidebar .nav a.active .icon{color:var(--focus)}
+body .sidebar .centring-mark{background:var(--green);color:var(--ink)}
+body .home-switch button[aria-pressed=true]{background:var(--selection)}
+body .home-composer:focus-within{border-color:var(--focus)}
 body .org-initial,body .row-glyph{background:var(--soft);color:var(--ink);border:1px solid var(--line)}
 body .centring-mark{background:var(--ink);color:var(--paper);border-radius:5px}
 body .home-composer{border-radius:10px;box-shadow:0 4px 18px #20221e09}
@@ -52,10 +54,10 @@ body .federal-search{border-radius:0;border-bottom:1px solid var(--line)}
 body .federal-status,body .document-status{background:transparent;padding-inline:0;color:var(--muted)}
 body .pilltabs{background:transparent;padding:0;box-shadow:none;flex-wrap:wrap}
 body .pilltabs button{border-radius:4px;background:transparent;color:var(--muted);box-shadow:none}
-body .pilltabs button.active,body .pilltabs button[aria-pressed=true]{background:var(--soft);color:var(--ink);box-shadow:none}
+body .pilltabs button.active,body .pilltabs button[aria-pressed=true]{background:var(--selection);color:var(--ink);box-shadow:none}
 .research-scope{display:flex;flex-wrap:wrap;gap:0 clamp(10px,2vw,26px);border-bottom:1px solid var(--line)}
 .research-scope button{background:transparent;border:0;border-bottom:2px solid transparent;padding:12px 0;font-weight:600;color:var(--muted)}
-.research-scope button[aria-pressed=true]{color:var(--ink);border-color:var(--ink)}
+.research-scope button[aria-pressed=true]{color:var(--ink);border-color:var(--focus)}
 .match-note{display:block;color:var(--ink);font-size:12px;margin-top:7px}
 .fit-reason{padding:16px;background:var(--soft);border-radius:6px;margin:16px 0}
 .fit-reason h3,.grant-context h3{font:400 22px/1.2 var(--serif);color:var(--ink)}

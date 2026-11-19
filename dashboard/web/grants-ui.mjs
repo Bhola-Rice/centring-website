@@ -1,4 +1,3 @@
-import {proactiveHelp} from './guidance.mjs';
 import {voiceButton} from './voice.mjs';
 export function createGrantBrowser({research,esc,heading,fitControls,showDialog,closeDialog,render,getSaved,save,toast,ask,calendar,startDraft,importGrant,getDocumentId,openDocument}){
  let view='research',query='',status='posted',nonprofit='any',page=1,data=null,error='',busy=false,started=false,requestId=0,detailId=0,current=null;
@@ -11,7 +10,7 @@ export function createGrantBrowser({research,esc,heading,fitControls,showDialog,
  if(busy)return '<div class="empty" role="status"><h3>Searching grants…</h3><p>Checking the official Grants.gov catalog.</p></div>';
  if(error)return `<div class="empty" role="alert"><h3>We couldn’t load the listings.</h3><p>${esc(error)}</p><button class="btn" data-action="federal-retry">Try again</button> ${link('https://simpler.grants.gov/search?query='+encodeURIComponent(query),'Search on Simpler')}</div>`;
  if(!data)return '<div class="empty"><p>Search for the work you want to fund.</p></div>';
- return `<div class="federal-result-meta" role="status"><span>${data.total.toLocaleString()} results · ${esc(data.source)}</span><span>Checked ${new Date(data.fetchedAt).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}</span></div>${data.results.length?data.results.map(row).join(''):'<div class="empty"><h3>No matching grants</h3><p>Try a broader phrase or include forecast opportunities. A nonprofit filter may omit notices with special eligibility rules.</p></div>'+proactiveHelp('search')}<div class="federal-pagination"><button class="btn" data-action="federal-prev" ${page<=1?'disabled':''}>← Previous</button><span>Page ${page} of ${Math.max(1,Math.ceil(data.total/12)).toLocaleString()}</span><button class="btn" data-action="federal-next" ${page*12>=data.total||page>=100?'disabled':''}>Next →</button></div>`;
+ return `<div class="federal-result-meta" role="status"><span>${data.total.toLocaleString()} results · ${esc(data.source)}</span><span>Checked ${new Date(data.fetchedAt).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}</span></div>${data.results.length?data.results.map(row).join(''):'<div class="empty"><h3>No matching grants</h3><p>Try a broader phrase or include forecast opportunities. A nonprofit filter may omit notices with special eligibility rules.</p></div>'}<div class="federal-pagination"><button class="btn" data-action="federal-prev" ${page<=1?'disabled':''}>← Previous</button><span>Page ${page} of ${Math.max(1,Math.ceil(data.total/12)).toLocaleString()}</span><button class="btn" data-action="federal-next" ${page*12>=data.total||page>=100?'disabled':''}>Next →</button></div>`;
  }
  function pageHTML(){
  const selected=view==='research'?(research.isFit()?'fit':'all'):view;
