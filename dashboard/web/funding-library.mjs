@@ -1,7 +1,7 @@
 import {createProjectSearch} from './project-search.mjs';
 const names={pharos:'Pharos',arachne:'Arachne'};
-export function createFundingLibrary({esc,render,showDialog,dateLabel,fitControls,startDraft,openFederal,getSaved=()=>[],getProjects=()=>[],save}){
- const project=createProjectSearch({esc,render,dateLabel,getProjects});
+export function createFundingLibrary({esc,render,mark,showDialog,dateLabel,fitControls,startDraft,openFederal,getSaved=()=>[],getProjects=()=>[],save}){
+ const project=createProjectSearch({esc,render,dateLabel,getProjects,mark});
  let fit=true,source='',query='',page=1,results=[],total=0,busy=false,error='',request=0,started=false;
  let includeClosed=false,selectedId=null;
  const statusLabel=value=>String(value).replaceAll('_',' ').toLowerCase();
