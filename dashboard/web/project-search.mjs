@@ -1,5 +1,7 @@
-export function createProjectSearch({esc,render,dateLabel,getProjects,mark}){
+export function createProjectSearch({esc,render,dateLabel,getProjects,mark,format,readStream,getSaved}){
  let projectId='',description='',answer='',choice='',plan=null,report=null,busy='',error='',compare=false;
+ let mode='web',webQuery='',searched='',draftText='',webResult=null,webRequest=null,webError='';
+ const webRows=()=> (webResult?.sources||[]).map(s=>({id:'web-'+s.url,source:'web',title:s.title,funder:s.host,url:s.url,status:'Research source',summary:'Funding research for: '+searched,reference:s.url,date:null}));
  let userBrief='',confirmedAnswer='';
  const lock=()=>busy?'disabled':'';
  const byline=()=>`<div class="discovery-byline"><span class="discovery-mark">${mark()}</span>Beedy</div>`;
@@ -20,9 +22,45 @@ export function createProjectSearch({esc,render,dateLabel,getProjects,mark}){
    <div class="discovery-composer compact"><textarea name="answer" aria-label="Additional project details" maxlength="900" rows="1" placeholder="${choices.length?'Or add your own detail…':'Add a detail (optional)…'}" ${lock()}>${esc(answer)}</textarea>
    <div class="discovery-toolbar"><details class="discovery-summary"><summary>Search brief</summary><p>${esc(plan.brief)}</p></details><button class="btn primary" ${lock()}>Find matches</button></div></div>`;
  }
+ function webPanel(){
+  const pending=Boolean(webRequest);
+  const projects=getProjects();
+  const select=projects.length?`<select name="projectId" aria-label="Project context" ${pending?'disabled':''}><option value="">New project</option>${projects.map(p=>`<option value="${esc(p.id)}" ${p.id===projectId?'selected':''}>${esc(p.name)}</option>`).join('')}</select>`:'';
+  const sources=webRows().map(r=>`<li><a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${esc(r.title)}</a><button type="button" class="textlink" data-save-research="${esc(r.id)}">${getSaved().some(g=>g.id===r.id)?'Remove from saved':'Save source'}</button></li>`).join('');
+  return `<section class="discovery web-discovery"><form id="funding-web-search">${byline()}<h2 class="discovery-question"><label for="funding-query">What would you like to fund?</label></h2>
+   <div class="discovery-composer"><textarea id="funding-query" name="q" maxlength="4500" rows="2" required ${pending?'readonly':''} placeholder="Search grants for a project, population or funding need…">${esc(webQuery)}</textarea>
+   <div class="discovery-toolbar">${select}${pending?'<button type="button" class="btn" data-stop-search>Stop search</button>':'<button class="btn primary">Search the web</button>'}</div></div></form>
+   <section class="web-reply" aria-label="Web search results">${pending?`<p role="status" class="discovery-progress"><i aria-hidden="true"></i>Searching public funding sources…</p>`:''}
+   ${webError?`<p role="alert">${esc(webError)}</p>`:''}
+   <div id="funding-web-answer" class="answer-body">${webResult?format(webResult.answer):esc(draftText)}</div>
+   ${webResult?`<p class="web-query-label">Results for ${esc(searched)}</p><details><summary>Sources (${webResult.sources.length})</summary><ul class="web-sources">${sources}</ul></details><button class="btn" data-action="ask-project-matches">Ask Beedy about these leads</button>`:''}</section>
+   ${pending?'':'<button type="button" class="textlink" data-search-mode="catalogue">Search the research catalogue</button>'}</section>`;
+ }
+ document.addEventListener('input',e=>{if(e.target.id==='funding-query')webQuery=e.target.value;});
+ document.addEventListener('click',e=>{
+  if(e.target.closest('[data-stop-search]'))webRequest?.abort();
+  const toggle=e.target.closest('[data-search-mode]');
+  if(toggle&&!busy&&!webRequest){mode=toggle.dataset.searchMode;render();}
+ });
+ document.addEventListener('submit',async e=>{
+  if(e.target.id!=='funding-web-search')return;e.preventDefault();
+  if(webRequest||!webQuery.trim())return;
+  const controller=new AbortController();webRequest=controller;webResult=null;webError='';draftText='';searched=webQuery.trim();render();
+  try{
+   const response=await fetch('/api/funding/project',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({action:'web',brief:searched,projectId})});
+   if(!response.ok)throw Error((await response.json()).error||'Search unavailable.');
+   webResult=await readStream(response,(label,delta)=>{
+    if(label!=='text'||controller.signal.aborted)return;
+    draftText+=delta;const target=document.getElementById('funding-web-answer');if(target)target.textContent=draftText;
+   });
+   if(!webResult?.answer||!webResult.sources?.length)throw Error('No cited response was received. Please retry.');
+  }catch(error){webResult=null;draftText='';webError=controller.signal.aborted?'Search stopped.':error.message||'Search unavailable.';}
+  finally{webRequest=null;render();}
+ });
  function panel(){
+  if(mode==='web')return webPanel();
   return `<section class="discovery ${report?'has-results':''}"><form id="project-search">${plan?review():intake()}
-   ${busy?`<p class="discovery-progress" role="status"><i aria-hidden="true"></i>${esc(busy)}</p>`:''}${error?`<p role="alert">${esc(error)}</p>`:''}</form>${report?matchList():''}</section>`;
+   ${busy?`<p class="discovery-progress" role="status"><i aria-hidden="true"></i>${esc(busy)}</p>`:''}${error?`<p role="alert">${esc(error)}</p>`:''}</form>${report?matchList():''}${busy?'':'<button type="button" class="textlink" data-search-mode="web">Search the web</button>'}</section>`;
  }
  const titleButton=r=>`<button type="button" class="federal-title" data-funding-id="${esc(r.id)}">${esc(r.title)}</button>`;
  function matchList(){
@@ -38,7 +76,7 @@ export function createProjectSearch({esc,render,dateLabel,getProjects,mark}){
   const response=await fetch('/api/funding/project',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,brief,terms,projectId})});
   const data=await response.json();if(!response.ok)throw Error(data.error||'Search failed. Please retry.');return data;
  }
- document.addEventListener('change',e=>{if(e.target.form?.id==='project-search'&&e.target.name==='projectId')projectId=e.target.value;});
+ document.addEventListener('change',e=>{if(['project-search','funding-web-search'].includes(e.target.form?.id)&&e.target.name==='projectId')projectId=e.target.value;});
  document.addEventListener('input',e=>{
   if(e.target.form?.id!=='project-search')return;
   if(e.target.name==='description')description=e.target.value;
@@ -72,5 +110,5 @@ export function createProjectSearch({esc,render,dateLabel,getProjects,mark}){
   }catch(e){error=e.message||'Search failed. Please retry.';}
   finally{busy='';render();if(!error)document.querySelector(report?'.project-results h2':'.discovery-question[tabindex]')?.focus({preventScroll:true});}
  });
- return {panel,row:id=>report?.results.find(r=>r.id===id),context:()=>report?{brief:description,matches:report.results.map(({title,funder,url,summary,insight,date,status})=>({title,funder,url,summary:summary.slice(0,1000),insight,date,status}))}:null};
+ return {panel,row:id=>webRows().find(r=>r.id===id)||report?.results.find(r=>r.id===id),context:()=>mode==='web'?(webResult?{brief:searched,answer:webResult.answer,matches:webRows()}:null):report?{brief:description,matches:report.results.map(({title,funder,url,summary,insight,date,status})=>({title,funder,url,summary:summary.slice(0,1000),insight,date,status}))}:null};
 }

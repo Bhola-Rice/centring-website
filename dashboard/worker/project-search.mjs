@@ -1,4 +1,6 @@
+import {searchFundingWeb} from './web-funding.mjs';
 import {beedyIdentity} from './auth.mjs';
+import {organisationForIdentity} from './organisation.mjs';
 import {knowledgeProfile} from './knowledge.mjs';
 import {getFederalGrant} from './grants.mjs';
 import {searchFunding} from './funding.mjs';
@@ -38,10 +40,11 @@ export async function handleProjectSearch(request,env,fetcher=fetch){
   while(true){const {value,done}=await reader.read();if(done)break;size+=value.length;if(size>20000){await reader.cancel();return reply({error:'Shorten the project description.'},413);}chunks.push(value);}
   input=JSON.parse(await new Blob(chunks).text());
  }catch{return reply({error:'Enter a project description.'},400);}
- if(!['brief','match'].includes(input?.action)||typeof input.brief!=='string'||!input.brief.trim()||input.brief.length>4500)return reply({error:'Describe the project in up to 4,500 characters.'},400);
+ if(!['web','brief','match'].includes(input?.action)||typeof input.brief!=='string'||!input.brief.trim()||input.brief.length>4500)return reply({error:'Describe the project in up to 4,500 characters.'},400);
  try{
   if(input.projectId && (typeof input.projectId!=='string'||!/^[a-zA-Z0-9-]{1,80}$/.test(input.projectId)))return reply({error:'Choose a saved project.'},400);
-  const profile=await knowledgeProfile(env,identity,input.projectId||undefined);
+  const profile=input.action==='web'&&!input.projectId?organisationForIdentity(identity):await knowledgeProfile(env,identity,input.projectId||undefined);
+  if(input.action==='web')return await searchFundingWeb(request,env,input,profile,fetcher);
   if(input.action==='brief'){
    const plan=await projectModel(env,'search_brief',projectPlanSchema,
     'Turn the user’s description into a concise editable search brief. Preserve population, location, use, timing, funder preferences, amount and flexibility when supplied. Keep the summary to two short sentences. Omit lists of missing information. For facts give up to four short confirmed project criteria (location, population, use or amount); omit unknowns. Include only facts explicitly supplied for this project. Never treat the organisation’s service area as confirmation of project geography. Use sentence case for choices. For a follow-up, put one short question in question. Put 2–4 short plausible optional answers in choices only when useful, otherwise return []. Never combine the answer options into the question. Options are suggestions, not project facts. Use confirmed details for the selected project, if any. Do not invent missing details. Upbring is the applicant. Ask at most one specific question whose answer most changes the shortlist, or use an empty question. Do not re-ask known organisation facts. Return 4–10 distinctive catalogue search phrases including synonyms for the intended activity or beneficiaries. Include short standalone terms for the core activities (for example mentoring and apprenticeship) along with specific phrases. In broadTerms return 2–4 short relevant subject terms commonly used in notice titles, such as family, foster, youth or housing as appropriate. Avoid generic words such as grant, nonprofit or Texas alone.',{profile,description:input.brief},fetcher);

@@ -1,7 +1,7 @@
 import {createProjectSearch} from './project-search.mjs';
 const names={pharos:'Pharos',arachne:'Arachne'};
-export function createFundingLibrary({esc,render,mark,showDialog,dateLabel,fitControls,startDraft,openFederal,getSaved=()=>[],getProjects=()=>[],save}){
- const project=createProjectSearch({esc,render,dateLabel,getProjects,mark});
+export function createFundingLibrary({esc,render,mark,format,readStream,showDialog,dateLabel,fitControls,startDraft,openFederal,getSaved=()=>[],getProjects=()=>[],save}){
+ const project=createProjectSearch({esc,render,dateLabel,getProjects,mark,format,readStream,getSaved});
  let fit=true,source='',query='',page=1,results=[],total=0,busy=false,error='',request=0,started=false;
  let includeClosed=false,selectedId=null;
  const statusLabel=value=>String(value).replaceAll('_',' ').toLowerCase();
@@ -20,6 +20,7 @@ export function createFundingLibrary({esc,render,mark,showDialog,dateLabel,fitCo
  function findRow(id){return project.row(id)||results.find(r=>r.id===id)||getSaved().find(r=>r.id===id);}
  function detailBody(row){
   const url=/^https?:\/\//i.test(row.url||'')?`<a class="textlink" href="${esc(row.url)}" target="_blank" rel="noopener noreferrer">Open funder notice ↗</a>`:'';
+  if(row.source==='web')return `<p>${esc(row.summary)}</p><div class="notice-actions">${url}<button class="btn" data-save-research="${esc(row.id)}">${getSaved().some(r=>r.id===row.id)?'Remove from saved':'Save source'}</button></div>`;
   const federalId=row.id.match(/^pharos-grants_gov\/(\d+)$/)?.[1];
   const draftButton=`<button class="btn primary" data-draft-research="${esc(row.id)}">Draft in Documents</button>`;
   const notice=federalId?`<button class="btn" data-live-notice="${federalId}">Review live notice</button>`:url;

@@ -80,3 +80,12 @@
  #beedy-panel .answer-tools>.iconbtn {opacity:0}
  #beedy-panel .chat-message:hover .answer-tools>.iconbtn,#beedy-panel .chat-message:focus-within .answer-tools>.iconbtn {opacity:1}
 }
+.web-reply{margin:1.25rem 0}
+.web-reply .answer-body{line-height:1.65;font-size:1rem;overflow-wrap:anywhere}
+.web-reply .answer-body:not(:has(>*)){white-space:pre-wrap}
+.web-reply .answer-body a,.web-sources a{color:#315f3d;text-decoration:underline;text-underline-offset:.18em}
+.web-query-label{font-size:.85rem;color:var(--muted)}
+.web-reply details{margin:1rem 0}
+.web-sources{list-style:none;padding:0}
+.web-sources li{display:flex;justify-content:space-between;gap:1rem;padding:.55rem 0;border-bottom:1px solid var(--line)}
+.web-sources button{flex:none}
