@@ -89,3 +89,77 @@
 .web-sources{list-style:none;padding:0}
 .web-sources li{display:flex;justify-content:space-between;gap:1rem;padding:.55rem 0;border-bottom:1px solid var(--line)}
 .web-sources button{flex:none}
+
+/* Keep the results column in place as the adjacent reader changes. */
+body main:has(>.funding-page){max-width:1580px}
+body .funding-page{max-width:none}
+.opportunity-split{display:grid;grid-template-columns:minmax(0,1.24fr) minmax(0,1fr);align-items:start;gap:clamp(1rem,2.5vw,2.75rem);margin-top:1.3rem}
+.opportunity-list,.opportunity-side{min-width:0}
+.opportunity-side{position:sticky;top:5rem;border-left:1px solid var(--line);padding-left:clamp(1rem,2vw,2.25rem);overflow-wrap:anywhere}
+#notice-content{box-sizing:border-box;min-height:16rem;max-height:calc(100dvh - 6rem);overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable;padding:0 .6rem 1rem 0;scroll-margin-top:4rem}
+#notice-content h2{font:400 clamp(1.45rem,2vw,2rem)/1.17 var(--serif);letter-spacing:-.025em;margin:.9rem 0 .65rem;outline-offset:2px}
+#notice-content h3,.web-source-list h3{font:600 1rem/1.35 var(--sans);margin:1rem 0 .4rem}
+#notice-content p{font-size:.94rem;line-height:1.55;margin:.55rem 0 .9rem}
+#notice-content :is(details,blockquote){font-size:.9rem;line-height:1.5}
+#notice-content details{margin:.65rem 0}
+#notice-content summary{cursor:pointer;color:#435a47;font-weight:550}
+#notice-content details p{color:#485348}
+.notice-heading,.notice-facts,.notice-actions{display:flex;align-items:center;gap:.5rem 1rem;flex-wrap:wrap}
+.notice-heading{justify-content:space-between;padding-bottom:.6rem;border-bottom:1px solid var(--line);color:#526354;font-size:.82rem;font-weight:600}
+.notice-heading button{border:0;background:transparent;color:inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px;padding:.3rem}
+.notice-facts{padding:.6rem 0;gap:1.25rem}
+.notice-facts div{display:grid;gap:.2rem}.notice-facts small,.reader-empty p,.source-result-row small{color:var(--muted)}
+.notice-facts strong{font-size:.92rem}.notice-actions{gap:.45rem;margin:1rem 0}
+#notice-content .btn{padding:.5rem .75rem;font-size:.84rem;min-height:2.35rem}
+.notice-original{border-top:1px solid var(--line);padding-top:.8rem}
+.reader-empty{padding:.1rem 0;max-width:32ch}
+.opportunity-list .discovery{margin:1.25rem 0 2rem}
+.opportunity-list .discovery-question{font-size:clamp(1.5rem,2.6vw,2.3rem)}
+.opportunity-list #research-search{grid-template-columns:1fr}
+.opportunity-list .federal-controls,.opportunity-list #research-search .federal-controls{display:flex;align-items:end;flex-wrap:wrap;gap:.6rem}
+.opportunity-list .federal-controls .field{flex:1 1 8rem;min-width:0}
+.opportunity-list .federal-controls :is(select,input){max-width:100%}
+.opportunity-list .federal-results,.opportunity-list .federal-row>div{min-width:0}
+.opportunity-list .federal-title{overflow-wrap:anywhere;text-align:left}
+.opportunity-list :is(.federal-row,.source-result-row,.match-record,.library-row):has([aria-current=true]){background:#f2f6ef;box-shadow:inset 3px 0 #658457;padding-inline:.9rem}
+.opportunity-list [aria-current=true]{color:#284c2e}
+.web-source-list{margin:1.5rem 0}.web-source-list h3 small{color:var(--muted);margin-left:.35em}
+.source-result-row{display:grid;justify-items:start;gap:.25rem;border-top:1px solid var(--line);padding:.8rem 0}
+.web-discovery>button{margin-top:.9rem}
+#notice-content .web-reply{margin:0}
+#notice-content .answer-body :is(ol,ul){padding-left:1.35rem}
+#notice-content .answer-body li{margin:.4rem 0}
+.opportunity-side:has(#opportunity-chat-slot .is-open) #notice-content{display:none}
+#opportunity-chat-slot #beedy-panel.is-open{position:static;display:flex;flex-direction:column;width:100%;min-width:0;max-width:none;height:min(72dvh,50rem);max-height:calc(100dvh - 6rem);margin:0;padding:0;box-shadow:none;border:0;border-radius:0;transform:none;opacity:1;visibility:visible;pointer-events:auto;overflow:hidden;background:white}
+#opportunity-chat-slot .chat-expand{display:none}
+@media(min-width:680px) and (max-width:1050px){
+ .opportunity-split{gap:1rem}.opportunity-list .federal-row{grid-template-columns:1fr;gap:.45rem}
+ .opportunity-list .federal-deadline{align-items:start;text-align:left}
+}
+@media(max-width:679px){
+ .opportunity-split{display:flex;flex-direction:column;gap:.55rem;margin-top:.7rem}
+ .opportunity-side,.opportunity-list{width:100%}
+ .opportunity-side{position:static;border:0;padding:0}
+ .opportunity-side:has(.reader-empty):not(:has(.is-open)){display:none}
+ .opportunity-split.show-notice .opportunity-list,.opportunity-split:has(#opportunity-chat-slot .is-open) .opportunity-list{display:none}
+ #notice-content{max-height:none;min-height:0;padding:.5rem 0;overflow:visible}
+ #opportunity-chat-slot #beedy-panel.is-open{height:75dvh;max-height:80dvh}
+}
+@media(min-width:680px) and (min-height:540px){
+ body main:has(>.funding-page){padding-block:1.25rem .5rem;min-height:0}
+ .funding-page{height:calc(100dvh - 7.8rem);display:flex;flex-direction:column}
+ .funding-page .funding-heading,.funding-page .research-scope{flex:none}
+ .funding-page .funding-heading{display:flex;align-items:center;justify-content:space-between}
+ body .funding-heading .beedy-launch{position:static;min-height:36px;padding:.35rem .7rem;box-shadow:none}
+ .opportunity-split{min-height:0;flex:1;grid-template-rows:minmax(0,1fr);align-items:stretch}
+ .opportunity-list{min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable;padding-right:.35rem}
+ .opportunity-side{position:static;min-height:0}
+ #notice-content{height:100%;min-height:0;max-height:none}
+ #opportunity-chat-slot:has(.is-open),#opportunity-chat-slot #beedy-panel.is-open{height:100%;max-height:none}
+}
+@media(max-width:679px){
+ .opportunity-split:has(.web-reply):not(:has(.is-open)) :is(.opportunity-list,.web-discovery){display:contents}
+ .opportunity-split:has(.web-reply) #funding-web-search{width:100%;order:-1}
+ .opportunity-split:has(.web-reply) .web-source-list{width:100%;order:1}
+ .opportunity-split:has(.web-reply) [data-search-mode]{order:2}
+}

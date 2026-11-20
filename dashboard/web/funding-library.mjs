@@ -1,14 +1,15 @@
+import {noticeParagraphs,noticePreview} from './notice-reader.mjs';
 import {createProjectSearch} from './project-search.mjs';
 const names={pharos:'Pharos',arachne:'Arachne'};
-export function createFundingLibrary({esc,render,mark,format,readStream,showDialog,dateLabel,fitControls,startDraft,openFederal,getSaved=()=>[],getProjects=()=>[],save}){
- const project=createProjectSearch({esc,render,dateLabel,getProjects,mark,format,readStream,getSaved});
+export function createFundingLibrary({reader,esc,render,mark,format,readStream,showDialog,dateLabel,fitControls,startDraft,openFederal,getSaved=()=>[],getProjects=()=>[],save}){
+ const project=createProjectSearch({esc,render,dateLabel,getProjects,mark,format,readStream,getSaved,reader});
  let fit=true,source='',query='',page=1,results=[],total=0,busy=false,error='',request=0,started=false;
- let includeClosed=false,selectedId=null;
+ let includeClosed=false;
  const statusLabel=value=>String(value).replaceAll('_',' ').toLowerCase();
  const selectSource=(value,label)=>`<option value="${value}" ${source===value?'selected':''}>${label}</option>`;
  async function search(){
   const ticket=++request;
-  started=true;busy=true;error='';selectedId=null;render();
+  started=true;busy=true;error='';reader.clear();render();
   try{
    const response=await fetch('/api/funding?'+new URLSearchParams({source,q:query,fit:fit?'1':'0',page:String(page),closed:includeClosed?'1':'0'}));
    if(!response.ok)throw new Error();
@@ -25,22 +26,21 @@ export function createFundingLibrary({esc,render,mark,format,readStream,showDial
   const draftButton=`<button class="btn primary" data-draft-research="${esc(row.id)}">Draft in Documents</button>`;
   const notice=federalId?`<button class="btn" data-live-notice="${federalId}">Review live notice</button>`:url;
   const reference=row.reference?`<p class="note">${esc(row.reference)}</p>`:'';
-  return `<p class="research-funder">${esc(row.funder)}</p>${fitControls({researchId:row.id})}<div class="notice-actions">${draftButton}<button type="button" class="btn" data-save-research="${esc(row.id)}">${getSaved().some(r=>r.id===row.id)?'Remove from saved':'Save opportunity'}</button>${notice}</div><div class="notice-facts"><div><small>Source status</small><strong>${esc(statusLabel(row.status))}</strong></div><div><small>Listed date</small><strong>${row.date?dateLabel(row.date):'No date listed'}</strong></div></div>${row.summary?'<p>'+esc(row.summary)+'</p>':''}${reference}`;
-
+  const summary=row.summary||'';
+  const preview=noticePreview(summary);
+  return `<p class="research-funder">${esc(row.funder)}</p><div class="notice-facts"><div><small>Source status</small><strong>${esc(statusLabel(row.status))}</strong></div><div><small>Listed date</small><strong>${row.date?dateLabel(row.date):'No date listed'}</strong></div></div>
+   ${row.insight?`<section class="notice-purpose"><h3>${esc(row.insight.decision)}</h3><p>${esc(row.insight.reason)}</p><h3>Next step</h3><p>${esc(row.insight.nextStep)}</p><details><summary>Supporting evidence</summary><blockquote>${esc(row.insight.evidence)}</blockquote></details></section>`:fitControls({researchId:row.id})}<div class="notice-actions">${draftButton}<button type="button" class="btn" data-save-research="${esc(row.id)}">${getSaved().some(r=>r.id===row.id)?'Remove from saved':'Save opportunity'}</button>${notice}</div>
+   ${preview?'<section class="notice-purpose"><h3>What it funds</h3><p>'+esc(preview)+'</p></section>':''}
+   ${summary.trim()!==preview?'<details class="notice-original"><summary>Read full notice text</summary>'+noticeParagraphs(summary,esc)+'</details>':''}${reference}`;
  }
- function open(id,besideResults=false){
-  const row=findRow(id);
-  if(!row)return;
-  if(besideResults&&window.matchMedia('(min-width: 960px)').matches){
-   selectedId=id;render();
-   document.querySelector('#funding-reader-title')?.focus({preventScroll:true});return;
-  }
+ function open(id){
+  const row=findRow(id);if(!row)return;
+  if(reader.show(id,names[row.source]||'Web source',row.title,()=>detailBody(row)))return;
   showDialog(`<h2 id="dialog-title">${esc(row.title)}</h2>`,detailBody(row));
  }
+
  function panel(){
-  const selection=results.find(r=>r.id===selectedId);
-  const reader=selection?`<aside class="funding-reader" aria-labelledby="funding-reader-title"><div class="research-reader-bar"><span>${esc(names[selection.source])}</span><button type="button" class="iconbtn" aria-label="Close opportunity" data-research="close">×</button></div><h2 tabindex="-1" id="funding-reader-title">${esc(selection.title)}</h2>${detailBody(selection)}</aside>`:'';
-  return `<section class="federal-search glass-panel"><form id="research-search"><label class="field federal-keyword">Programme, funder or topic<input type="search" name="q" maxlength="180" value="${esc(query)}" placeholder="Search foster care, education or a foundation"></label><div class="federal-controls"><label class="field">Funding source<select name="source">${selectSource('','All research sources')}${Object.entries(names).map(([k,v])=>selectSource(k,v)).join('')}</select></label><label class="research-archive"><input type="checkbox" name="closed" ${includeClosed?'checked':''}> Include closed listings</label><button class="btn primary">Search</button></div></form></section><div class="research-workspace ${selection?'with-selection':''}"><section class="federal-results glass-panel" aria-label="Funding research results"><div role="status" class="federal-result-meta">${busy?'Searching funding research…':error?esc(error):total.toLocaleString()+(fit?' programme matches':' opportunities')}</div>${error?'<button class="btn" data-research="retry">Try again</button>':busy?'':results.length?results.map(r=>`<article class="federal-row"><div><span class="federal-status">${esc(names[r.source])}</span><button class="federal-title" data-funding-id="${esc(r.id)}" aria-expanded="${selectedId===r.id}">${esc(r.title)}</button><p>${esc(r.funder)}</p>${r.matches?.length?'<small class="match-note">Matches your profile · '+esc(r.matches.slice(0,2).join(' · '))+'</small>':''}</div><div class="federal-deadline"><strong>${r.date?dateLabel(r.date):'No date listed'}</strong><small>${esc(statusLabel(r.status))}</small></div></article>`).join(''):`<p class="empty">${fit?'No programme matches for this search.':'No matching opportunities.'} ${fit?'<button class="textlink" data-research="all">Search all opportunities</button>':''}</p>`}${!busy&&!error&&total>12?`<div class="federal-pagination"><button class="btn" data-research="prev" ${page===1?'disabled':''}>← Previous</button><span>Page ${page} of ${Math.ceil(total/12)}</span><button class="btn" data-research="next" ${page*12>=total?'disabled':''}>Next →</button></div>`:''}</section>${reader}</div>`;
+  return `<section class="federal-search glass-panel"><form id="research-search"><label class="field federal-keyword">Programme, funder or topic<input type="search" name="q" maxlength="180" value="${esc(query)}" placeholder="Search foster care, education or a foundation"></label><div class="federal-controls"><label class="field">Funding source<select name="source">${selectSource('','All research sources')}${Object.entries(names).map(([k,v])=>selectSource(k,v)).join('')}</select></label><label class="research-archive"><input type="checkbox" name="closed" ${includeClosed?'checked':''}> Include closed listings</label><button class="btn primary">Search</button></div></form></section><div class="research-workspace"><section class="federal-results glass-panel" aria-label="Funding research results"><div role="status" class="federal-result-meta">${busy?'Searching funding research…':error?esc(error):total.toLocaleString()+(fit?' programme matches':' opportunities')}</div>${error?'<button class="btn" data-research="retry">Try again</button>':busy?'':results.length?results.map(r=>`<article class="federal-row"><div><span class="federal-status">${esc(names[r.source])}</span><button class="federal-title" data-funding-id="${esc(r.id)}">${esc(r.title)}</button><p>${esc(r.funder)}</p>${r.matches?.length?'<small class="match-note">Matches your profile · '+esc(r.matches.slice(0,2).join(' · '))+'</small>':''}</div><div class="federal-deadline"><strong>${r.date?dateLabel(r.date):'No date listed'}</strong><small>${esc(statusLabel(r.status))}</small></div></article>`).join(''):`<p class="empty">${fit?'No programme matches for this search.':'No matching opportunities.'} ${fit?'<button class="textlink" data-research="all">Search all opportunities</button>':''}</p>`}${!busy&&!error&&total>12?`<div class="federal-pagination"><button class="btn" data-research="prev" ${page===1?'disabled':''}>← Previous</button><span>Page ${page} of ${Math.ceil(total/12)}</span><button class="btn" data-research="next" ${page*12>=total?'disabled':''}>Next →</button></div>`:''}</section></div>`;
  }
  document.addEventListener('submit',e=>{
   if(e.target.id!=='research-search')return;
@@ -53,6 +53,7 @@ export function createFundingLibrary({esc,render,mark,format,readStream,showDial
    const row=findRow(button.dataset.saveResearch);if(!row)return;
    const saved=getSaved(),exists=saved.some(r=>r.id===row.id),dialog=button.closest('dialog');
    if(save(exists?saved.filter(r=>r.id!==row.id):[row,...saved])){
+    if(exists&&reader.current(row.id)&&!findRow(row.id))reader.clear();
     render();
     if(dialog && exists && !findRow(row.id))dialog.close();
     else if(dialog)showDialog(`<h2 id="dialog-title">${esc(row.title)}</h2>`,detailBody(row));
@@ -65,11 +66,7 @@ export function createFundingLibrary({esc,render,mark,format,readStream,showDial
    if(row)startDraft({researchId:row.id,name:row.title,agency:row.funder,url:row.url,summary:row.summary});
    return;
   }
-  if(button.dataset.fundingId){open(button.dataset.fundingId,!button.closest('.project-results'));return;}
-  if(button.dataset.research==='close'){
-   const previous=selectedId;selectedId=null;render();
-   document.querySelector('[data-funding-id="'+CSS.escape(previous)+'"]')?.focus();return;
-  }
+  if(button.dataset.fundingId){open(button.dataset.fundingId);return;}
   if(button.dataset.research==='all'){fit=false;page=1;}
   if(button.dataset.research==='next')page++;
   if(button.dataset.research==='prev')page=Math.max(1,page-1);
