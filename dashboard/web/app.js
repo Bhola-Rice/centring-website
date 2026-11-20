@@ -192,7 +192,23 @@ function migrateDemo(){
 migrateDemo();adoptUpbringContext(state);persist();
 function mountDocumentVoice(){const d=studioDoc();if(!d)return;const target=document.querySelector('.studio-tabs')||document.querySelector('[aria-label="Document views"]');target?.append(voiceButton(()=>{const edits=d.review?.edits||[];if(!edits.length)return null;return {kind:'edits',total:edits.length,edits:edits.slice(0,12).map(e=>({status:e.status||'suggested',before:String(e.before||'').slice(0,500),after:String(e.after||e.suggested||'').slice(0,500),reason:String(e.reason||'').slice(0,300)}))};}));}
 
-function render(){const chatPosition=chatReadingPosition();const activePrompt=document.activeElement?.id==='home-prompt'?[document.activeElement.selectionStart,document.activeElement.selectionEnd]:null;document.body.classList.toggle('nav-pinned',navigationPinned);document.body.classList.toggle('today-view',route()==='today');hideDayPreview();syncBeedyDocument();stopSourceViewer();renderBase();if(route()==='opportunities'){const heading=$('.funding-heading'),launcher=$('.beedy-launch');if(heading&&launcher)heading.append(launcher);}if(activePrompt){const input=document.querySelector('#home-prompt');if(input){input.focus({preventScroll:true});input.setSelectionRange(...activePrompt);}}document.querySelectorAll('[data-organisation-banner]').forEach(blendOrganisationBanner);federal.mount();if(route().startsWith('studio/'))mountDocumentVoice();placeChatPanel(chatPosition);if(route().startsWith('studio/')&&shouldMountSourceViewer(studioDoc(),studioTab,sourceMode))mountSourceViewer(studioDoc(),studioTab==='review'?{review:true,mode:reviewMode,onSelect:selectReviewSuggestion}:{});}
+function projectReadingPosition(){
+ const pane=document.querySelector('.project-thread');
+ if(!pane||!pane.dataset)return ()=>{};
+ const mode=pane.dataset.mode;
+ const listTop=document.querySelector('.project-work .opportunity-list')?.scrollTop||0;
+ const transcriptTop=pane.querySelector('.project-transcript').scrollTop;
+ const active=document.activeElement;
+ const input=pane.contains(active)&&active.tagName==='TEXTAREA'?{id:active.id,start:active.selectionStart,end:active.selectionEnd}:null;
+ return ()=>{
+  const next=document.querySelector('.project-thread');
+  if(next?.dataset.mode!==mode)return;
+  next.querySelector('.project-transcript').scrollTop=transcriptTop;
+  document.querySelector('.project-work .opportunity-list').scrollTop=listTop;
+  if(input?.id){const field=document.getElementById(input.id);if(field&&!field.disabled){field.focus({preventScroll:true});field.setSelectionRange(input.start,input.end);}}
+ };
+}
+function render(){const restoreProject=projectReadingPosition();const chatPosition=chatReadingPosition();const activePrompt=document.activeElement?.id==='home-prompt'?[document.activeElement.selectionStart,document.activeElement.selectionEnd]:null;document.body.classList.toggle('nav-pinned',navigationPinned);document.body.classList.toggle('today-view',route()==='today');hideDayPreview();syncBeedyDocument();stopSourceViewer();renderBase();restoreProject();if(route()==='opportunities'){const heading=$('.funding-heading'),launcher=$('.beedy-launch');if(heading&&launcher)heading.append(launcher);}if(activePrompt){const input=document.querySelector('#home-prompt');if(input){input.focus({preventScroll:true});input.setSelectionRange(...activePrompt);}}document.querySelectorAll('[data-organisation-banner]').forEach(blendOrganisationBanner);federal.mount();if(route().startsWith('studio/'))mountDocumentVoice();placeChatPanel(chatPosition);if(route().startsWith('studio/')&&shouldMountSourceViewer(studioDoc(),studioTab,sourceMode))mountSourceViewer(studioDoc(),studioTab==='review'?{review:true,mode:reviewMode,onSelect:selectReviewSuggestion}:{});}
 function daysBetween(a,b){return Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/86400000)}
 function plusDays(d,n){const date=new Date(d+'T12:00:00');date.setDate(date.getDate()+n);return iso(date.getFullYear(),date.getMonth(),date.getDate())}
 function taskProgress(t){return t.done?100:t.checks?.length?Math.round(t.checks.filter(c=>c.done).length/t.checks.length*100):0}
@@ -473,6 +489,7 @@ function positionChatLog(position=null){
  if(log)log.scrollTo({top:position??log.scrollHeight,behavior:'instant'});
 }
 function placeChatPanel(position){
+ if(document.querySelector('.project-split'))chatOpen=false;
  const opportunitySlot=chatOpen&&route()==='opportunities'?$('#opportunity-chat-slot'):null;
  const openInPage=chatOpen&&!floatingChat&&!opportunitySlot;
  const inline=openInPage&&route()==='today';

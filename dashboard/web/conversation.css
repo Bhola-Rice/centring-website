@@ -163,3 +163,41 @@ body .funding-page{max-width:none}
  .opportunity-split:has(.web-reply) .web-source-list{width:100%;order:1}
  .opportunity-split:has(.web-reply) [data-search-mode]{order:2}
 }
+
+/* Project discovery is one conversation. Only the work column changes on selection. */
+.project-work{min-width:0;min-height:0;scroll-margin-top:1rem}
+.project-split .project-work>#notice-content,.project-split.show-notice .project-work>.opportunity-list{display:none}
+.project-split.show-notice .project-work>#notice-content{display:block}
+.project-work>.opportunity-list{height:100%}
+.project-split .project-await h2,.project-split .web-source-list h2,.project-split .project-results h2{font:400 clamp(1.65rem,2.2vw,2.15rem)/1.15 var(--serif);margin:0 0 .55rem;letter-spacing:-.025em}
+.project-await p{max-width:40ch;color:var(--muted);line-height:1.5}
+.project-work .web-source-list,.project-work .discovery,.project-work .project-results{margin:0}
+.project-work .web-source-list small{font:500 .9rem var(--sans);color:var(--muted)}
+.project-work .project-results article{padding:1rem .35rem}
+.project-work .match-terms{margin:.5rem 0 0}
+.project-side .project-thread{margin:0;height:100%;display:flex;flex-direction:column;gap:.75rem;max-width:none}
+.project-thread>header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding:0 0 .65rem}
+.project-thread .discovery-question{font-size:clamp(1.4rem,2.2vw,1.9rem);text-align:left;margin:.6rem 0 1rem}
+.project-thread :is(.project-question,.project-agent-turn p,.project-user-turn p){margin:0;font-size:1rem;line-height:1.55}
+.project-thread .project-question{font-weight:600;margin:.65rem 0}
+.project-transcript{min-height:0;overflow:auto;overscroll-behavior:contain;padding-right:.45rem;scrollbar-gutter:stable}
+.project-user-turn{margin:.25rem 0 1rem auto;padding:.65rem .9rem;background:#f0f4ed;border-radius:12px 12px 3px 12px;max-width:86%;width:fit-content;white-space:pre-line}
+.project-agent-turn{margin:.55rem 0 1rem}
+.project-agent-turn .answer-body{overflow-wrap:anywhere;line-height:1.55}
+.project-agent-turn :is(ul,ol){padding-left:1.35rem}
+.project-agent-turn .answer-body a{color:#365a3e;text-decoration:underline}
+.project-thread .project-followup{margin:auto 0 0}.project-thread .thread-actions{display:flex;flex-wrap:wrap;gap:.5rem 1rem}
+.project-thread .thread-actions button{font-size:.85rem}
+.project-thread .mobile-work-link,.funding-page:has(.project-split) .funding-heading .beedy-launch{display:none}
+@media(max-width:679px){
+ .project-split .project-side{order:-1;padding:0 0 1rem;border-bottom:1px solid var(--line)}
+ .project-split .project-work{width:100%}
+ .project-split .project-await{display:none}
+ .project-transcript{overflow:visible;padding:0}
+ .project-thread .mobile-work-link{display:block}
+ .project-split .project-thread{height:auto}
+ .project-split .project-work .opportunity-list{display:block}
+ .project-split.show-notice .project-work .opportunity-list{display:none}
+ .project-split:has(.web-reply):not(:has(.is-open)) .opportunity-list{display:block}
+ .project-split.show-notice:has(.web-reply):not(:has(.is-open)) .opportunity-list{display:none}
+}

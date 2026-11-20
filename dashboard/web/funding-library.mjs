@@ -4,7 +4,10 @@ const names={pharos:'Pharos',arachne:'Arachne'};
 export function createFundingLibrary({reader,esc,render,mark,format,readStream,showDialog,dateLabel,fitControls,startDraft,openFederal,getSaved=()=>[],getProjects=()=>[],save}){
  const project=createProjectSearch({esc,render,dateLabel,getProjects,mark,format,readStream,getSaved,reader});
  let fit=true,source='',query='',page=1,results=[],total=0,busy=false,error='',request=0,started=false;
- let includeClosed=false;
+ let includeClosed=false,draftQuery='';
+ document.addEventListener('input',e=>{
+  if(e.target.form?.id==='research-search'&&e.target.name==='q')draftQuery=e.target.value;
+ });
  const statusLabel=value=>String(value).replaceAll('_',' ').toLowerCase();
  const selectSource=(value,label)=>`<option value="${value}" ${source===value?'selected':''}>${label}</option>`;
  async function search(){
@@ -40,12 +43,12 @@ export function createFundingLibrary({reader,esc,render,mark,format,readStream,s
  }
 
  function panel(){
-  return `<section class="federal-search glass-panel"><form id="research-search"><label class="field federal-keyword">Programme, funder or topic<input type="search" name="q" maxlength="180" value="${esc(query)}" placeholder="Search foster care, education or a foundation"></label><div class="federal-controls"><label class="field">Funding source<select name="source">${selectSource('','All research sources')}${Object.entries(names).map(([k,v])=>selectSource(k,v)).join('')}</select></label><label class="research-archive"><input type="checkbox" name="closed" ${includeClosed?'checked':''}> Include closed listings</label><button class="btn primary">Search</button></div></form></section><div class="research-workspace"><section class="federal-results glass-panel" aria-label="Funding research results"><div role="status" class="federal-result-meta">${busy?'Searching funding research…':error?esc(error):total.toLocaleString()+(fit?' programme matches':' opportunities')}</div>${error?'<button class="btn" data-research="retry">Try again</button>':busy?'':results.length?results.map(r=>`<article class="federal-row"><div><span class="federal-status">${esc(names[r.source])}</span><button class="federal-title" data-funding-id="${esc(r.id)}">${esc(r.title)}</button><p>${esc(r.funder)}</p>${r.matches?.length?'<small class="match-note">Matches your profile · '+esc(r.matches.slice(0,2).join(' · '))+'</small>':''}</div><div class="federal-deadline"><strong>${r.date?dateLabel(r.date):'No date listed'}</strong><small>${esc(statusLabel(r.status))}</small></div></article>`).join(''):`<p class="empty">${fit?'No programme matches for this search.':'No matching opportunities.'} ${fit?'<button class="textlink" data-research="all">Search all opportunities</button>':''}</p>`}${!busy&&!error&&total>12?`<div class="federal-pagination"><button class="btn" data-research="prev" ${page===1?'disabled':''}>← Previous</button><span>Page ${page} of ${Math.ceil(total/12)}</span><button class="btn" data-research="next" ${page*12>=total?'disabled':''}>Next →</button></div>`:''}</section></div>`;
+  return `<section class="federal-search glass-panel"><form id="research-search"><label class="field federal-keyword">Programme, funder or topic<input type="search" name="q" maxlength="180" value="${esc(draftQuery)}" placeholder="Search foster care, education or a foundation"></label><div class="federal-controls"><label class="field">Funding source<select name="source">${selectSource('','All research sources')}${Object.entries(names).map(([k,v])=>selectSource(k,v)).join('')}</select></label><label class="research-archive"><input type="checkbox" name="closed" ${includeClosed?'checked':''}> Include closed listings</label><button class="btn primary">Search</button></div></form></section><div class="research-workspace"><section class="federal-results glass-panel" aria-label="Funding research results"><div role="status" class="federal-result-meta">${busy?'Searching funding research…':error?esc(error):total.toLocaleString()+(fit?' programme matches':' opportunities')}</div>${error?'<button class="btn" data-research="retry">Try again</button>':busy?'':results.length?results.map(r=>`<article class="federal-row"><div><span class="federal-status">${esc(names[r.source])}</span><button class="federal-title" data-funding-id="${esc(r.id)}">${esc(r.title)}</button><p>${esc(r.funder)}</p>${r.matches?.length?'<small class="match-note">Matches your profile · '+esc(r.matches.slice(0,2).join(' · '))+'</small>':''}</div><div class="federal-deadline"><strong>${r.date?dateLabel(r.date):'No date listed'}</strong><small>${esc(statusLabel(r.status))}</small></div></article>`).join(''):`<p class="empty">${fit?'No programme matches for this search.':'No matching opportunities.'} ${fit?'<button class="textlink" data-research="all">Search all opportunities</button>':''}</p>`}${!busy&&!error&&total>12?`<div class="federal-pagination"><button class="btn" data-research="prev" ${page===1?'disabled':''}>← Previous</button><span>Page ${page} of ${Math.ceil(total/12)}</span><button class="btn" data-research="next" ${page*12>=total?'disabled':''}>Next →</button></div>`:''}</section></div>`;
  }
  document.addEventListener('submit',e=>{
   if(e.target.id!=='research-search')return;
   e.preventDefault();const data=new FormData(e.target);
-  query=String(data.get('q')).trim();source=String(data.get('source'));includeClosed=data.has('closed');page=1;void search();
+  draftQuery=query=String(data.get('q')).trim();source=String(data.get('source'));includeClosed=data.has('closed');page=1;void search();
  });
  document.addEventListener('click',e=>{
   const button=e.target.closest('[data-save-research],[data-research],[data-funding-id],[data-draft-research],[data-live-notice]');if(!button)return;
@@ -72,5 +75,5 @@ export function createFundingLibrary({reader,esc,render,mark,format,readStream,s
   if(button.dataset.research==='prev')page=Math.max(1,page-1);
   void search();
  });
- return {project,panel,open,selectSource(id){source=id;query='';page=1;fit=false;includeClosed=false;void search();},isFit:()=>fit,setFit(value){if(fit!==value){fit=value;page=1;void search();}},mount(){if(!started){started=true;queueMicrotask(search);}}};
+ return {project,panel,open,selectSource(id){source=id;draftQuery=query='';page=1;fit=false;includeClosed=false;void search();},isFit:()=>fit,setFit(value){if(fit!==value){fit=value;page=1;void search();}},mount(){if(!started){started=true;queueMicrotask(search);}}};
 }

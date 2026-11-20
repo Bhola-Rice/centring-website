@@ -1,11 +1,11 @@
 // One reading surface for all Opportunities views. Selecting a different notice
 // replaces only the reader so that list scroll, filters and typed queries survive.
 export function createNoticeReader({esc,onSelect}){
- let entry=null,fallback='',trigger=null;
+ let entry=null,trigger=null;
  const root=()=>document.querySelector('.opportunity-split');
  const pane=()=>document.querySelector('#notice-content');
  function contents(){
-  if(!entry)return fallback||'<div class="reader-empty"><h2>Opportunity details</h2><p>Select a listing to read its notice and check the fit for Upbring.</p></div>';
+  if(!entry)return '<div class="reader-empty"><h2>Opportunity details</h2><p>Select a listing to read its notice and check the fit for Upbring.</p></div>';
   return `<header class="notice-heading"><span>${esc(entry.label)}</span><button type="button" data-close-notice aria-label="Back to results">Back to results</button></header><h2 id="notice-title" tabindex="-1">${esc(entry.title)}</h2>${entry.body()}`;
  }
  function highlight(){
@@ -27,8 +27,10 @@ export function createNoticeReader({esc,onSelect}){
  document.addEventListener('click',e=>{if(e.target.closest('[data-close-notice]'))back();});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&entry&&pane()?.contains(document.activeElement)&&!document.querySelector('dialog[open]'))back();});
  return {
-  wrap(list,defaultContent=''){
-   fallback=defaultContent;
+  wrap(list,projectConversation=''){
+   if(projectConversation)return `<div class="opportunity-split project-split ${entry?'show-notice':''}">
+    <section class="project-work" tabindex="-1" aria-label="Project search results"><div class="opportunity-list">${list}</div><div id="notice-content">${entry?contents():''}</div></section>
+    <aside class="opportunity-side project-side" aria-label="Project conversation">${projectConversation}</aside></div>`;
    return `<div class="opportunity-split ${entry?'show-notice':''}"><div class="opportunity-list">${list}</div><aside class="opportunity-side" aria-label="Opportunity reader"><div id="notice-content">${contents()}</div><div id="opportunity-chat-slot"></div></aside></div>`;
   },
   show(key,label,title,body,attach){

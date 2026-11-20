@@ -23,3 +23,15 @@ test('project matches use active catalogue evidence and reject ungrounded model 
   assert.equal((await handleProjectSearch(request(body,{'oai-authenticated-user-id':''}),env)).status,401);
  }finally{DB.close();}
 });
+
+test('project follow-ups receive the conversation and selected source without rerunning the search',async()=>{
+ const env={OPENAI_API_KEY:'test'};
+ const input={action:'followup',brief:'Youth mentoring in Houston',question:'Which condition should we check?',history:'user — Are mentoring costs eligible?',evidence:'Example Foundation · Houston only.',selected:'Example Foundation'};
+ const answer=await handleProjectSearch(request(input),env,async(url,options)=>{
+  const payload=JSON.parse(JSON.parse(options.body).input);
+  assert.equal(payload.evidence,input.evidence);assert.equal(payload.history,input.history);assert.equal(payload.selected,input.selected);
+  return Response.json({output:[{content:[{type:'output_text',text:JSON.stringify({answer:'Confirm the project serves Houston.'})}]}]});
+ });
+ assert.equal((await answer.json()).answer,'Confirm the project serves Houston.');
+ assert.equal((await handleProjectSearch(request({...input,evidence:'x'.repeat(9001)}),env)).status,400);
+});
