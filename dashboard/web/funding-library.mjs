@@ -1,5 +1,7 @@
+import {createProjectSearch} from './project-search.mjs';
 const names={pharos:'Pharos',arachne:'Arachne'};
-export function createFundingLibrary({esc,render,showDialog,dateLabel,fitControls,startDraft,openFederal,getSaved=()=>[],save}){
+export function createFundingLibrary({esc,render,showDialog,dateLabel,fitControls,startDraft,openFederal,getSaved=()=>[],getProjects=()=>[],save}){
+ const project=createProjectSearch({esc,render,dateLabel,getProjects});
  let fit=true,source='',query='',page=1,results=[],total=0,busy=false,error='',request=0,started=false;
  let includeClosed=false,selectedId=null;
  const statusLabel=value=>String(value).replaceAll('_',' ').toLowerCase();
@@ -15,7 +17,7 @@ export function createFundingLibrary({esc,render,showDialog,dateLabel,fitControl
   }catch{if(ticket===request)error='Couldn’t load funding research.';}
   finally{if(ticket===request){busy=false;render();}}
  }
- function findRow(id){return results.find(r=>r.id===id)||getSaved().find(r=>r.id===id);}
+ function findRow(id){return project.row(id)||results.find(r=>r.id===id)||getSaved().find(r=>r.id===id);}
  function detailBody(row){
   const url=/^https?:\/\//i.test(row.url||'')?`<a class="textlink" href="${esc(row.url)}" target="_blank" rel="noopener noreferrer">Open funder notice ↗</a>`:'';
   const federalId=row.id.match(/^pharos-grants_gov\/(\d+)$/)?.[1];
@@ -62,7 +64,7 @@ export function createFundingLibrary({esc,render,showDialog,dateLabel,fitControl
    if(row)startDraft({researchId:row.id,name:row.title,agency:row.funder,url:row.url,summary:row.summary});
    return;
   }
-  if(button.dataset.fundingId){open(button.dataset.fundingId,true);return;}
+  if(button.dataset.fundingId){open(button.dataset.fundingId,!button.closest('.project-results'));return;}
   if(button.dataset.research==='close'){
    const previous=selectedId;selectedId=null;render();
    document.querySelector('[data-funding-id="'+CSS.escape(previous)+'"]')?.focus();return;
@@ -72,5 +74,5 @@ export function createFundingLibrary({esc,render,showDialog,dateLabel,fitControl
   if(button.dataset.research==='prev')page=Math.max(1,page-1);
   void search();
  });
- return {panel,open,selectSource(id){source=id;query='';page=1;fit=false;includeClosed=false;void search();},isFit:()=>fit,setFit(value){if(fit!==value){fit=value;page=1;void search();}},mount(){if(!started){started=true;queueMicrotask(search);}}};
+ return {project,panel,open,selectSource(id){source=id;query='';page=1;fit=false;includeClosed=false;void search();},isFit:()=>fit,setFit(value){if(fit!==value){fit=value;page=1;void search();}},mount(){if(!started){started=true;queueMicrotask(search);}}};
 }

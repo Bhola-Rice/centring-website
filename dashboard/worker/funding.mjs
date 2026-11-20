@@ -1,7 +1,7 @@
 import {organisationForIdentity} from './organisation.mjs';
 import {beedyIdentity} from './auth.mjs';
 
-export async function searchFunding(db,{source='',query='',page=1,includeClosed=false,fitTerms=null}={}){
+export async function searchFunding(db,{source='',query='',page=1,includeClosed=false,fitTerms=null,limit=12}={}){
  if(!db)throw new Error('Funding library unavailable.');
  const where=["source IN ('pharos','arachne')"],args=[];
  if(!includeClosed)where.push("lower(status) NOT IN ('closed','archived','expired')");
@@ -19,11 +19,11 @@ export async function searchFunding(db,{source='',query='',page=1,includeClosed=
  const relevance=terms?.length?terms.map(()=>"CASE WHEN instr(lower(title), ?) > 0 THEN 2 WHEN instr(lower(coalesce(summary,'')), ?) > 0 THEN 1 ELSE 0 END").join(" + ")+" DESC,":"";
  const filter=' WHERE '+where.join(' AND ');
  const {total}=await db.prepare('SELECT count(*) AS total FROM funding_records'+filter).bind(...args).first();
- const offset=(Math.max(1,Math.min(100000,Math.floor(Number(page))||1))-1)*12;
+ const offset=(Math.max(1,Math.min(100000,Math.floor(Number(page))||1))-1)*limit;
  const {results}=await db.prepare('SELECT * FROM funding_records'+filter+` ORDER BY ${relevance}
   CASE WHEN lower(status) IN ('posted','open') AND (date>=date('now') OR date IS NULL) THEN 1
        WHEN source='arachne' THEN 2 ELSE 3 END,
-  date IS NULL, date, title, id LIMIT 12 OFFSET ?`).bind(...args,...(terms||[]).flatMap(t=>[t,t]),offset).all();
+  date IS NULL, date, title, id LIMIT ? OFFSET ?`).bind(...args,...(terms||[]).flatMap(t=>[t,t]),limit,offset).all();
  return {total,results:terms?results.map(row=>({...row,matches:terms.filter(term=>[row.title,row.summary].some(text=>text?.toLowerCase().includes(term)))})):results};
 }
 

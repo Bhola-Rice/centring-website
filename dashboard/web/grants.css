@@ -44,3 +44,15 @@
 .beedy-fit h4 {margin:0;font:400 21px/1.25 var(--serif)}
 .beedy-fit p {margin:8px 0;font-size:14px;line-height:1.55}
 .beedy-fit footer,.beedy-fit details {margin:10px 0;color:var(--muted);font-size:12px}
+
+.project-search,.project-results{padding:clamp(18px,3vw,34px);margin:20px 0}
+.project-search h2,.project-results h2{font-size:1.4rem;margin:0 0 12px}
+.project-search textarea{box-sizing:border-box;width:100%;padding:14px;font:inherit;line-height:1.5;border:1px solid #bfc9c2;border-radius:9px;resize:vertical}
+.project-search .field{display:grid;gap:8px;margin-bottom:16px}
+.project-brief-text,.project-results p,.project-results blockquote{max-width:78ch;line-height:1.5;overflow-wrap:anywhere}
+.project-actions,.project-results header{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.project-results header{justify-content:space-between}
+.project-results article{padding:20px 0;border-top:1px solid #dce2dd}
+.project-results article p{margin:8px 0}
+.project-results blockquote{margin:12px 0;padding:3px 14px;border-left:3px solid #96b59c;color:#415048}
+.project-decision{display:block;font-weight:600;color:#375b42;margin-bottom:8px}
