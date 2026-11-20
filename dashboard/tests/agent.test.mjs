@@ -14,3 +14,15 @@ test('unconfigured connection returns an explicit unavailable state',async()=>{c
 test('agent endpoint rejects cross-origin requests and missing identity',async()=>{const foreign=await handleAgent(new Request('https://demo.test/api/beedy/chat',{method:'POST',headers:{origin:'https://evil.test'},body:'{}'}),{OPENAI_API_KEY:'test'});assert.equal(foreign.status,403);const anon=await handleAgent(new Request('https://demo.test/api/beedy/chat',{method:'POST',headers:{origin:'https://demo.test'},body:'{}'}),{OPENAI_API_KEY:'test'});assert.equal(anon.status,401);});
 test('oversized messages and duplicate task IDs are rejected',()=>{assert.throws(()=>validatePayload({...payload(),message:'x'.repeat(4001)}));const p=payload();p.workspace.tasks.push(p.workspace.tasks[0]);assert.throws(()=>validatePayload(p));});
 test('task creation and reopening keep progress consistent',()=>{const w=fixture();const id=applyChange({kind:'task_create',id:null,patch:{title:'New task',owner:'alex',start:'2026-11-10',date:'2026-11-11'}},w,'new-id');assert.equal(id,'new-id');applyChange({kind:'task_update',id,patch:{status:'done'}},w);assert.equal(w.tasks[1].checks[0].done,true);applyChange({kind:'task_update',id,patch:{status:'doing'}},w);assert.equal(w.tasks[1].done,false);assert.equal(w.tasks[1].checks[0].done,false);});
+
+test('a clarification returns selectable replies without creating workspace changes',async()=>{
+ const workspace=fixture();
+ const reply=await runAgent({message:'Help me narrow this search.',workspace},{OPENAI_API_KEY:'test'},async()=>Response.json({
+  status:'completed',output:[{type:'function_call',name:'ask_with_choices',call_id:'clarify',arguments:JSON.stringify({
+   question:'Who will use the app?',choices:['Caregivers','Caseworkers','Caregivers']
+  })}]
+ }));
+ assert.equal(reply.answer,'Who will use the app?');
+ assert.deepEqual(reply.choices,['Caregivers','Caseworkers']);
+ assert.deepEqual(reply.proposals,[]);
+});

@@ -20,3 +20,23 @@ test('every saved opportunity and its deadline stay inside the results container
  }
  assert.equal(rows,12);assert.equal(deadlines,12);assert.equal(stack.length,0);
 });
+
+test('a slow live notice cannot replace the opportunity selected afterwards',async()=>{
+ let selected,finish;
+ const reader={
+  show(key,label,title){selected={key,title};return true;},
+  current(key){return selected?.key===key;}
+ };
+ const context=vm.createContext({
+  document:{addEventListener(){}},
+  fetch:()=>new Promise(resolve=>{finish=resolve;})
+ });
+ vm.runInContext(source,context);
+ const ui=context.createGrantBrowser({reader,esc:String,showDialog(){assert.fail('Opening a notice inside Opportunities must use the side reader');}});
+ const pending=ui.open('357524');
+ assert.equal(selected.key,'357524');
+ reader.show('another','Pharos','Another listing');
+ finish({ok:true,json:async()=>({id:'357524',name:'Stale notice'})});
+ await pending;
+ assert.equal(selected.title,'Another listing');
+});
